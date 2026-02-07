@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login | UniStay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --light-gray: #e2e8f0;
+      --border-radius: 16px;
+      --border-radius-sm: 10px;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.4);
+      --transition: all 0.3s ease;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background animation */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+      z-index: -1;
+    }
+
+    /* Login Container */
+    .login-container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .login-header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 5px 15px rgba(99, 102, 241, 0.2);
+    }
+
+    .login-header p {
+      color: var(--gray);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Login Box */
+    .login-box {
+      background: var(--darker);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 550px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    /* Left Panel - Security */
+    .login-security {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-security::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+      background-size: cover;
+    }
+
+    .security-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .security-features {
+      list-style: none;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .security-features li {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+    }
+
+    .security-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .security-note {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .note-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .note-content {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+
+    /* Right Panel - Form */
+    .login-form {
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-header {
+      margin-bottom: 30px;
+    }
+
+    .form-header h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      color: var(--light);
+      margin-bottom: 10px;
+    }
+
+    .form-header p {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    /* Form Styling */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--light);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-input {
+      padding: 14px 15px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: var(--transition);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--light);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .key-input {
+      position: relative;
+    }
+
+    .key-prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+      font-weight: 500;
+      font-family: 'Poppins', monospace;
+    }
+
+    .key-input .form-input {
+      padding-left: 45px;
+      letter-spacing: 3px;
+      font-family: 'Poppins', monospace;
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Buttons */
+    .form-buttons {
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: var(--border-radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 25px 0;
+      color: var(--gray);
+      position: relative;
+      font-size: 0.9rem;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      position: absolute;
+      top: 50%;
+      width: 45%;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .google-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--light);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .google-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Error Display */
+    .error-display {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 15px;
+      margin-top: 15px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: #f87171;
+    }
+
+    .error-display.show {
+      display: flex;
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* Links */
+    .login-links {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    .login-links a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 5px;
+      transition: var(--transition);
+    }
+
+    .login-links a:hover {
+      text-decoration: underline;
+      color: var(--secondary);
+    }
+
+    /* Loading State */
+    .loading {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .login-box {
+        grid-template-columns: 1fr;
+      }
+      
+      .login-security {
+        padding: 40px 30px;
+      }
+      
+      .login-header h1 {
+        font-size: 2.2rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .login-security, .login-form {
+        padding: 30px 20px;
+      }
+      
+      .login-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .security-title {
+        font-size: 1.5rem;
+      }
+      
+      .form-header h2 {
+        font-size: 1.5rem;
+      }
+      
+      body {
+        padding: 10px;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.6s ease;
+    }
+
+    /* Key Input Animation */
+    .key-input .form-input:valid {
+      border-color: var(--success);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    /* CEO Login Section */
+    .ceo-login-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .ceo-btn {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: white;
+      border: none;
+    }
+    
+    .ceo-btn:hover {
+      background: linear-gradient(135deg, #d97706, #ea580c);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div id="loadingText">Verifying Administrative Access...</div>
+  </div>
+
+  <div class="login-container fade-up">
+    <div class="login-header">
+      <h1>Administrative Portal</h1>
+      <p>Secure access to UniStay platform management</p>
+    </div>
+    
+    <div class="login-box">
+      <!-- Left Panel - Security -->
+      <div class="login-security">
+        <h2 class="security-title">Secure Authentication</h2>
+        <ul class="security-features">
+          <li>
+            <div class="security-icon"><i class="fas fa-key"></i></div>
+            <span>6-Digit Administrative Key Required</span>
+          </li>
+          <li>
+            <div class="security-icon"><i class="fas fa-shield-alt"></i></div>
+            <span>Multi-layered Security Protocol</span>
+          </li>
+          <li>
+            <div class="security-icon"><i class="fas fa-clock"></i></div>
+            <span>Real-time Session Monitoring</span>
+          </li>
+          <li>
+            <div class="security-icon"><i class="fas fa-user-shield"></i></div>
+            <span>Role-based Access Control</span>
+          </li>
+          <li>
+            <div class="security-icon"><i class="fas fa-history"></i></div>
+            <span>Activity Logging & Audit Trail</span>
+          </li>
+        </ul>
+        
+        <div class="security-note">
+          <div class="note-title">
+            <i class="fas fa-info-circle"></i> Important Note
+          </div>
+          <div class="note-content">
+            <strong>For CEO Login:</strong> Use Google Authentication or contact support<br>
+            <strong>For Admins:</strong> Use your 6-digit key and password
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Panel - Form -->
+      <div class="login-form">
+        <div class="form-header">
+          <h2>Admin Authentication</h2>
+          <p>Enter your credentials to access the administrative dashboard</p>
+        </div>
+        
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-key"></i> Administrative Key
+            </label>
+            <div class="key-input">
+              <span class="key-prefix">#</span>
+              <input type="text" id="adminKey" class="form-input" 
+                     placeholder="000000" 
+                     pattern="[0-9]{6}" 
+                     maxlength="6" 
+                     required 
+                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,6)">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="form-input" 
+                     placeholder="Enter your password" 
+                     required 
+                     minlength="6">
+              <button type="button" class="toggle-password" id="togglePassword">
+                <i class="far fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-buttons">
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+              <i class="fas fa-sign-in-alt"></i> Authenticate & Access Dashboard
+            </button>
+          </div>
+        </form>
+        
+        <!-- Error Display -->
+        <div class="error-display" id="errorDisplay">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span id="errorText"></span>
+        </div>
+        
+        <div class="divider">OR</div>
+        
+        <!-- CEO Login Section -->
+        <div class="ceo-login-section">
+          <h3 style="color: var(--warning); margin-bottom: 15px; font-size: 1.1rem;">
+            <i class="fas fa-crown"></i> CEO Access
+          </h3>
+          
+          <button class="btn ceo-btn" id="ceoDirectLogin">
+            <i class="fas fa-user-shield"></i> CEO Direct Login
+          </button>
+          
+          <div style="margin-top: 10px; text-align: center; font-size: 0.85rem; color: var(--gray);">
+            <i class="fas fa-info-circle"></i> CEO uses Google Authentication
+          </div>
+        </div>
+        
+        <div class="login-links">
+          Need help? <a href="mailto:support@unistay.ng">Contact Support</a>
+          <br>
+          Forgot your key? <a href="mailto:jesseegwuatu@gmail.com">Contact CEO</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWOFJN21yu4u4miNU3e64CvQkNCGZX_qU",
+      authDomain: "unistay-5e6b4.firebaseapp.com",
+      databaseURL: "https://unistay-5e6b4-default-rtdb.firebaseio.com",
+      projectId: "unistay-5e6b4",
+      storageBucket: "unistay-5e6b4.firebasestorage.app",
+      messagingSenderId: "551189171944",
+      appId: "1:551189171944:web:81f5f686f7d31a0a3a035d"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    
+    // DOM Elements
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const adminKeyInput = document.getElementById('adminKey');
+    const errorDisplay = document.getElementById('errorDisplay');
+    const errorText = document.getElementById('errorText');
+    const loadingOverlay = document.getElementById('loading');
+    const loadingText = document.getElementById('loadingText');
+    const ceoDirectLoginBtn = document.getElementById('ceoDirectLogin');
+    
+    // Toggle Password Visibility
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+    });
+    
+    // Show Loading State
+    function showLoading(text = 'Verifying Administrative Access...') {
+      loadingText.textContent = text;
+      loadingOverlay.classList.add('show');
+    }
+    
+    // Hide Loading State
+    function hideLoading() {
+      loadingOverlay.classList.remove('show');
+    }
+    
+    // Show Error Message
+    function showError(message) {
+      errorText.textContent = message;
+      errorDisplay.classList.add('show');
+      setTimeout(() => {
+        errorDisplay.classList.remove('show');
+      }, 5000);
+    }
+    
+    // Clear previous session
+    function clearSession() {
+      localStorage.removeItem('adminKey');
+      localStorage.removeItem('adminEmail');
+      localStorage.removeItem('ceoLoggedIn');
+    }
+    
+    // CEO Direct Login Function
+    ceoDirectLoginBtn.addEventListener('click', async () => {
+      showLoading('Initializing CEO Authentication...');
+      
+      try {
+        // First, let's check if CEO exists in database
+        const ceoSnapshot = await db.ref('admins').orderByChild('email').equalTo('jesseegwuatu@gmail.com').once('value');
+        
+        if (ceoSnapshot.exists()) {
+          // CEO exists, use Google auth
+          hideLoading();
+          await ceoGoogleAuth();
+        } else {
+          // CEO doesn't exist, create account and redirect
+          await createCEOAccount();
+        }
+      } catch (error) {
+        console.error('CEO login error:', error);
+        showError('CEO login failed. Please try again.');
+        hideLoading();
+      }
+    });
+    
+    // CEO Google Authentication
+    async function ceoGoogleAuth() {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // Add Google sign-in popup
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        const userEmail = user.email.toLowerCase();
+        
+        // Check if this is the CEO
+        if (userEmail !== 'jesseegwuatu@gmail.com') {
+          showError('Only the CEO can access this portal');
+          await auth.signOut();
+          return;
+        }
+        
+        showLoading('Verifying CEO credentials...');
+        
+        // Check if CEO exists in /admins
+        const ceoSnapshot = await db.ref('admins').orderByChild('email').equalTo(userEmail).once('value');
+        
+        if (ceoSnapshot.exists()) {
+          // CEO exists, get their data
+          let ceoData = null;
+          ceoSnapshot.forEach((child) => {
+            ceoData = child.val();
+          });
+          
+          // Update last login
+          await db.ref('admins/' + (ceoData.adminKey || '123456')).update({
+            lastLogin: firebase.database.ServerValue.TIMESTAMP
+          });
+          
+          // Store session
+          localStorage.setItem('adminKey', ceoData.adminKey || '123456');
+          localStorage.setItem('adminEmail', userEmail);
+          localStorage.setItem('ceoLoggedIn', 'true');
+          
+          hideLoading();
+          window.location.href = 'ceo-dashboard.html';
+        } else {
+          // Create CEO account
+          await createCEOAccount(user);
+        }
+        
+      } catch (error) {
+        console.error('Google auth error:', error);
+        
+        if (error.code === 'auth/popup-blocked') {
+          showError('Popup blocked. Please allow popups for this site.');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+          showError('Popup closed. Please try again.');
+        } else {
+          showError('Google authentication failed. Please try again.');
+        }
+        hideLoading();
+      }
+    }
+    
+    // Create CEO Account
+    async function createCEOAccount(googleUser = null) {
+      try {
+        showLoading('Setting up CEO account...');
+        
+        // Create CEO admin record
+        const ceoData = {
+          adminKey: '123456',
+          email: 'jesseegwuatu@gmail.com',
+          fullName: googleUser ? googleUser.displayName : 'Jesse Egwuatu',
+          password: 'Ogochukwu2005$', // Default password
+          status: 'approved',
+          role: 'ceo',
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          lastLogin: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        await db.ref('admins/123456').set(ceoData);
+        
+        // Store session
+        localStorage.setItem('adminKey', '123456');
+        localStorage.setItem('adminEmail', 'jesseegwuatu@gmail.com');
+        localStorage.setItem('ceoLoggedIn', 'true');
+        
+        hideLoading();
+        showNotification('CEO account created successfully!', 'success');
+        
+        // Redirect to CEO dashboard
+        setTimeout(() => {
+          window.location.href = 'ceo-dashboard.html';
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Create CEO error:', error);
+        showError('Failed to create CEO account');
+        hideLoading();
+      }
+    }
+    
+    // Show Notification
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(99, 102, 241, 0.9)'};
+        color: white;
+        border-radius: 10px;
+        z-index: 3000;
+        font-weight: 500;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      `;
+      notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
+    }
+    
+    // Admin Login Function (for regular admins)
+    async function loginAdmin(key, password) {
+      showLoading('Verifying admin credentials...');
+      
+      try {
+        // Check if this is the CEO key
+        if (key === '123456') {
+          // CEO login with key+password
+          const ceoSnapshot = await db.ref('admins/123456').once('value');
+          
+          if (ceoSnapshot.exists()) {
+            const ceo = ceoSnapshot.val();
+            
+            // Verify password (case-sensitive)
+            if (ceo.password === password) {
+              // Update last login
+              await db.ref('admins/123456').update({
+                lastLogin: firebase.database.ServerValue.TIMESTAMP
+              });
+              
+              // Store session
+              localStorage.setItem('adminKey', '123456');
+              localStorage.setItem('adminEmail', ceo.email);
+              localStorage.setItem('ceoLoggedIn', 'true');
+              
+              hideLoading();
+              window.location.href = 'ceo-dashboard.html';
+              return true;
+            } else {
+              showError('Incorrect password for CEO account');
+              return false;
+            }
+          } else {
+            // Create CEO account if doesn't exist
+            if (password === 'Ogochukwu2005$') {
+              await createCEOAccount();
+              return true;
+            } else {
+              showError('CEO account not found. Please use Google Authentication.');
+              return false;
+            }
+          }
+        }
+        
+        // Regular admin login
+        const adminSnapshot = await db.ref('admins/' + key).once('value');
+        
+        if (adminSnapshot.exists()) {
+          const admin = adminSnapshot.val();
+          
+          // Check if admin is approved
+          if (admin.status !== 'approved') {
+            showError('Access denied - Admin account not approved');
+            return false;
+          }
+          
+          // Check password
+          if (admin.password !== password) {
+            showError('Incorrect password');
+            return false;
+          }
+          
+          // Update last login
+          await db.ref('admins/' + key).update({
+            lastLogin: firebase.database.ServerValue.TIMESTAMP
+          });
+          
+          // Store session
+          localStorage.setItem('adminKey', key);
+          localStorage.setItem('adminEmail', admin.email);
+          
+          // Redirect to appropriate dashboard
+          hideLoading();
+          if (admin.email === "jesseegwuatu@gmail.com") {
+            window.location.href = 'ceo-dashboard.html';
+          } else {
+            window.location.href = 'admindashboard.html';
+          }
+          
+          return true;
+        }
+        
+        // Check in adminApplicants
+        const applicantsSnapshot = await db.ref('adminApplicants').orderByChild('adminKey').equalTo(key).once('value');
+        
+        if (applicantsSnapshot.exists()) {
+          let applicantData = null;
+          applicantsSnapshot.forEach((child) => {
+            applicantData = child.val();
+          });
+          
+          if (applicantData.status !== 'approved') {
+            showError('Access denied - Application not approved');
+            return false;
+          }
+          
+          if (applicantData.password !== password) {
+            showError('Incorrect password');
+            return false;
+          }
+          
+          // Move to /admins collection
+          await db.ref('admins/' + key).set({
+            ...applicantData,
+            lastLogin: firebase.database.ServerValue.TIMESTAMP
+          });
+          
+          // Store session
+          localStorage.setItem('adminKey', key);
+          localStorage.setItem('adminEmail', applicantData.email);
+          
+          hideLoading();
+          window.location.href = 'admindashboard.html';
+          return true;
+        }
+        
+        showError('Administrative key not found');
+        return false;
+        
+      } catch (error) {
+        console.error('Login error:', error);
+        showError('Login failed. Please try again.');
+        return false;
+      } finally {
+        hideLoading();
+      }
+    }
+    
+    // Form Submission
+    adminLoginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const key = adminKeyInput.value.trim();
+      const password = passwordInput.value.trim();
+      
+      // Clear previous error
+      errorDisplay.classList.remove('show');
+      
+      // Validate key
+      if (key.length !== 6 || !/^\d{6}$/.test(key)) {
+        showError('Invalid administrative key. Must be exactly 6 digits.');
+        adminKeyInput.focus();
+        return;
+      }
+      
+      // Validate password
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters');
+        passwordInput.focus();
+        return;
+      }
+      
+      // Clear any previous session
+      clearSession();
+      
+      // Attempt login
+      await loginAdmin(key, password);
+    });
+    
+    // Auto-focus key input on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      adminKeyInput.focus();
+      
+      // Check if already logged in
+      const savedKey = localStorage.getItem('adminKey');
+      const isCEO = localStorage.getItem('ceoLoggedIn');
+      
+      if (savedKey && isCEO) {
+        // Redirect CEO directly
+        window.location.href = 'ceo-dashboard.html';
+      } else if (savedKey) {
+        // Fill saved key for admin
+        adminKeyInput.value = savedKey;
+        passwordInput.focus();
+      }
+    });
+    
+    // Keyboard shortcuts
+    adminKeyInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && adminKeyInput.value.length === 6) {
+        passwordInput.focus();
+      }
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        adminLoginForm.dispatchEvent(new Event('submit'));
+      }
+    });
+    
+    // Real-time validation for key input
+    adminKeyInput.addEventListener('input', () => {
+      if (adminKeyInput.value.length === 6 && /^\d{6}$/.test(adminKeyInput.value)) {
+        adminKeyInput.style.borderColor = 'var(--success)';
+      } else {
+        adminKeyInput.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      }
+    });
+  </script>
+</body>
+</html>

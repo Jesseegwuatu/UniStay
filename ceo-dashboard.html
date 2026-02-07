@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UniStay CEO Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --dark: #0f172a;
+      --darker: #020617;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --light-gray: #e2e8f0;
+      --card-bg: #1e293b;
+      --sidebar-bg: #0f172a;
+      --border-radius: 16px;
+      --border-radius-sm: 10px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.3);
+      --transition: all 0.3s ease;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--darker);
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background Pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+      z-index: -1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo-icon {
+      color: var(--primary);
+      font-size: 2rem;
+    }
+
+    .logo-text {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .nav-menu {
+      list-style: none;
+      margin-bottom: 40px;
+    }
+
+    .nav-item {
+      margin-bottom: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      color: var(--gray);
+      text-decoration: none;
+      border-radius: var(--border-radius-sm);
+      transition: var(--transition);
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--light);
+    }
+
+    .nav-link i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .nav-count {
+      margin-left: auto;
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .user-profile {
+      margin-top: auto;
+      padding: 20px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--border-radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 45px;
+      height: 45px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .user-info h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .user-info p {
+      font-size: 0.85rem;
+      color: var(--gray);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      padding: 30px;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .header-left h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .header-left p {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .time-display {
+      color: var(--gray);
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--border-radius-sm);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-icon.users { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .stat-icon.admins { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+    .stat-icon.pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .stat-icon.properties { background: rgba(236, 72, 153, 0.1); color: var(--accent); }
+    .stat-icon.pending-listings { background: rgba(139, 92, 246, 0.1); color: var(--secondary); }
+
+    .stat-info h3 {
+      font-size: 2rem;
+      margin-bottom: 5px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .stat-info p {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* Main Content Sections */
+    .content-section {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .section-header h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-header h2 i {
+      color: var(--primary);
+    }
+
+    .filter-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--gray);
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .filter-btn.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    /* Applications Grid */
+    .applications-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .application-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .application-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .applicant-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .status-approved { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .status-declined { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+    .status-published { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+    .status-inactive { background: rgba(107, 114, 128, 0.1); color: #9ca3af; }
+
+    .app-details {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .app-details p {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-details i {
+      width: 16px;
+      color: var(--primary);
+    }
+
+    .admin-key-display {
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: var(--border-radius-sm);
+      padding: 10px 15px;
+      margin: 15px 0;
+      font-family: 'Poppins', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-align: center;
+      color: var(--primary);
+      display: none;
+    }
+
+    .app-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .accept-btn {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .accept-btn:hover {
+      background: rgba(16, 185, 129, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .decline-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .decline-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .undecline-btn {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .undecline-btn:hover {
+      background: rgba(245, 158, 11, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Listing Cards */
+    .listing-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .listing-card:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .listing-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: var(--border-radius-sm);
+      margin-bottom: 15px;
+    }
+
+    .listing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .listing-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+
+    .listing-price {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .listing-details {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .listing-details p {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .listing-details i {
+      width: 16px;
+      color: var(--primary);
+    }
+
+    .listing-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Users Table */
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .users-table thead {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .users-table th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .users-table td {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.95rem;
+    }
+
+    .users-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .role-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .role-student { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+    .role-owner { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+    .role-admin { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .role-ceo { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .modal-header h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-header p {
+      color: var(--gray);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .modal-confirm {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .modal-confirm:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .modal-cancel {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--gray);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-cancel:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .sidebar {
+        width: 220px;
+      }
+      .main-content {
+        margin-left: 220px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 80px;
+        padding: 20px 10px;
+      }
+      .logo-text, .nav-link span, .user-info, .nav-count {
+        display: none;
+      }
+      .logo {
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+      .main-content {
+        margin-left: 80px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px;
+      }
+      .applications-grid,
+      .listings-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Animation for notifications */
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Loading Overlay -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>Loading Dashboard...</div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-crown"></i></div>
+      <div class="logo-text">UniStay CEO</div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#dashboard" class="nav-link active" data-section="dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#applications" class="nav-link" data-section="applications">
+          <i class="fas fa-users"></i>
+          <span>Admin Applications</span>
+          <span class="nav-count" id="pendingCount">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#listings" class="nav-link" data-section="listings">
+          <i class="fas fa-home"></i>
+          <span>Property Listings</span>
+          <span class="nav-count" id="pendingListingsCount">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#users" class="nav-link" data-section="users">
+          <i class="fas fa-user-friends"></i>
+          <span>All Users</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#admins" class="nav-link" data-section="admins">
+          <i class="fas fa-user-shield"></i>
+          <span>Admins</span>
+          <span class="nav-count" id="adminCount">0</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#analytics" class="nav-link" data-section="analytics">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#settings" class="nav-link" data-section="settings">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="user-profile">
+      <div class="user-avatar">CEO</div>
+      <div class="user-info">
+        <h4 id="ceoName">Jesse Egwuatu</h4>
+        <p>Chief Executive Officer</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1 id="greeting">Good morning, CEO Sir</h1>
+        <p id="currentDate">Monday, January 15, 2024</p>
+      </div>
+      <div class="header-right">
+        <div class="time-display" id="currentTime">12:00 PM</div>
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon users">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalUsers">0</h3>
+          <p>Total Users</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon admins">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalAdmins">0</h3>
+          <p>Administrators</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon pending">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="pendingApplications">0</h3>
+          <p>Pending Applications</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon pending-listings">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="pendingListings">0</h3>
+          <p>Pending Listings</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon properties">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalProperties">0</h3>
+          <p>Total Properties</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Applications Section -->
+    <div class="content-section" id="applicationsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-users"></i> Administrator Applications</h2>
+        <div class="filter-options">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="pending">Pending</button>
+          <button class="filter-btn" data-filter="approved">Approved</button>
+          <button class="filter-btn" data-filter="declined">Declined</button>
+        </div>
+      </div>
+      <div class="applications-grid" id="applicationsGrid"></div>
+    </div>
+
+    <!-- Property Listings Section -->
+    <div class="content-section" id="listingsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-home"></i> Property Listings</h2>
+        <div class="filter-options">
+          <button class="filter-btn active" data-listing-filter="all">All</button>
+          <button class="filter-btn" data-listing-filter="pending">Pending</button>
+          <button class="filter-btn" data-listing-filter="approved">Approved</button>
+          <button class="filter-btn" data-listing-filter="rejected">Rejected</button>
+        </div>
+      </div>
+      <div class="applications-grid" id="listingsGrid"></div>
+    </div>
+
+    <!-- Users Section -->
+    <div class="content-section" id="usersSection">
+      <div class="section-header">
+        <h2><i class="fas fa-user-friends"></i> All Platform Users</h2>
+        <div class="filter-options">
+          <button class="filter-btn active" data-role="all">All</button>
+          <button class="filter-btn" data-role="student">Students</button>
+          <button class="filter-btn" data-role="propertyOwner">Owners</button>
+          <button class="filter-btn" data-role="admin">Admins</button>
+        </div>
+      </div>
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Admins Section -->
+    <div class="content-section" id="adminsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-user-shield"></i> Active Administrators</h2>
+      </div>
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Admin Key</th>
+            <th>Email</th>
+            <th>Last Login</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="content-section" id="analyticsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+      </div>
+      <div style="text-align: center; padding: 50px; color: var(--gray);">
+        <i class="fas fa-chart-bar" style="font-size: 4rem; margin-bottom: 20px;"></i>
+        <h3>Analytics Coming Soon</h3>
+        <p>Detailed analytics and reports will be available in the next update.</p>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="content-section" id="settingsSection">
+      <div class="section-header">
+        <h2><i class="fas fa-cog"></i> Settings</h2>
+      </div>
+      <div style="text-align: center; padding: 50px; color: var(--gray);">
+        <i class="fas fa-tools" style="font-size: 4rem; margin-bottom: 20px;"></i>
+        <h3>Settings Panel</h3>
+        <p>Platform settings and configurations will be available here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Modal -->
+  <div class="modal" id="logoutModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-sign-out-alt"></i> Confirm Logout</h3>
+        <p>Are you sure you want to logout from the CEO dashboard?</p>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-confirm" id="confirmLogout">
+          <i class="fas fa-sign-out-alt"></i> Yes, Logout
+        </button>
+        <button class="modal-btn modal-cancel" id="cancelLogout">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ================= FIREBASE ================= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWOFJN21yu4u4miNU3e64CvQkNCGZX_qU",
+      authDomain: "unistay-5e6b4.firebaseapp.com",
+      databaseURL: "https://unistay-5e6b4-default-rtdb.firebaseio.com",
+      projectId: "unistay-5e6b4",
+      storageBucket: "unistay-5e6b4.firebasestorage.app",
+      messagingSenderId: "551189171944",
+      appId: "1:551189171944:web:81f5f686f7d31a0a3a035d"
+    };
+
+    // Initialize Firebase (Database only, no Authentication)
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    /* ================= DOM ELEMENTS ================= */
+    const loadingOverlay = document.getElementById('loading');
+    const greetingElement = document.getElementById('greeting');
+    const currentDateElement = document.getElementById('currentDate');
+    const currentTimeElement = document.getElementById('currentTime');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogout');
+    const cancelLogoutBtn = document.getElementById('cancelLogout');
+    const ceoNameElement = document.getElementById('ceoName');
+    const pendingCountElement = document.getElementById('pendingCount');
+    const pendingListingsCountElement = document.getElementById('pendingListingsCount');
+    const adminCountElement = document.getElementById('adminCount');
+    const totalUsersElement = document.getElementById('totalUsers');
+    const totalAdminsElement = document.getElementById('totalAdmins');
+    const pendingApplicationsElement = document.getElementById('pendingApplications');
+    const pendingListingsElement = document.getElementById('pendingListings');
+    const totalPropertiesElement = document.getElementById('totalProperties');
+    const applicationsGrid = document.getElementById('applicationsGrid');
+    const listingsGrid = document.getElementById('listingsGrid');
+    const usersTable = document.getElementById('usersTable');
+    const adminsTable = document.getElementById('adminsTable');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    const sections = {
+      applications: document.getElementById('applicationsSection'),
+      listings: document.getElementById('listingsSection'),
+      users: document.getElementById('usersSection'),
+      admins: document.getElementById('adminsSection'),
+      analytics: document.getElementById('analyticsSection'),
+      settings: document.getElementById('settingsSection')
+    };
+
+    /* ================= SIMPLE AUTHENTICATION CHECK ================= */
+    async function checkAuth() {
+      console.log("Checking authentication...");
+      showLoading();
+      
+      try {
+        // Get stored session
+        const adminKey = localStorage.getItem('adminKey');
+        const adminEmail = localStorage.getItem('adminEmail');
+        
+        console.log("Stored key:", adminKey);
+        console.log("Stored email:", adminEmail);
+        
+        if (!adminKey || !adminEmail) {
+          console.log("No session found, redirecting to login");
+          redirectToLogin();
+          return null;
+        }
+        
+        // Check if this is the CEO (key 123456 or email jesseegwuatu@gmail.com)
+        const isCEO = adminKey === '123456' || adminEmail === 'jesseegwuatu@gmail.com';
+        
+        if (!isCEO) {
+          console.log("Not CEO, redirecting to admin dashboard");
+          window.location.href = 'admindashboard.html';
+          return null;
+        }
+        
+        // Verify CEO exists in database
+        const ceoSnapshot = await db.ref('admins/123456').once('value');
+        
+        if (!ceoSnapshot.exists()) {
+          console.log("CEO record not found, creating one...");
+          // Create CEO record if it doesn't exist
+          await db.ref('admins/123456').set({
+            adminKey: '123456',
+            email: 'jesseegwuatu@gmail.com',
+            fullName: 'Jesse Egwuatu',
+            password: 'Ogochukwu2005$',
+            status: 'approved',
+            role: 'ceo',
+            createdAt: Date.now(),
+            lastLogin: Date.now()
+          });
+        } else {
+          // Update last login
+          await db.ref('admins/123456').update({
+            lastLogin: Date.now()
+          });
+        }
+        
+        console.log("CEO authentication successful");
+        ceoNameElement.textContent = "Jesse Egwuatu";
+        hideLoading();
+        
+        return {
+          key: '123456',
+          email: 'jesseegwuatu@gmail.com',
+          name: 'Jesse Egwuatu'
+        };
+        
+      } catch (error) {
+        console.error("Auth check error:", error);
+        showNotification("Authentication error", "error");
+        redirectToLogin();
+        return null;
+      }
+    }
+
+    function redirectToLogin() {
+      window.location.href = "admin-login.html";
+    }
+
+    /* ================= INITIALIZATION ================= */
+    async function init() {
+      console.log("Initializing CEO Dashboard...");
+      
+      try {
+        // First check authentication
+        const user = await checkAuth();
+        
+        if (!user) {
+          console.log("Authentication failed, redirecting...");
+          return;
+        }
+        
+        console.log("CEO Dashboard loaded for:", user.email);
+        
+        // Setup everything else
+        updateDateTime();
+        setInterval(updateTime, 1000);
+        setupEventListeners();
+        await loadAllData();
+        
+        // Show dashboard content
+        showSection('applications');
+        
+      } catch (error) {
+        console.error("Initialization error:", error);
+        showNotification("Failed to load dashboard", "error");
+        hideLoading();
+      }
+    }
+
+    function showLoading() {
+      loadingOverlay.classList.add('show');
+    }
+
+    function hideLoading() {
+      setTimeout(() => {
+        loadingOverlay.classList.remove('show');
+      }, 500);
+    }
+
+    /* ================= DATE & TIME ================= */
+    function updateDateTime() {
+      const now = new Date();
+      const hours = now.getHours();
+      
+      // Update greeting
+      let greeting = "Good ";
+      if (hours < 12) greeting += "morning";
+      else if (hours < 18) greeting += "afternoon";
+      else greeting += "evening";
+      greetingElement.textContent = `${greeting}, CEO Sir`;
+
+      // Update date
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+    }
+
+    function updateTime() {
+      const now = new Date();
+      currentTimeElement.textContent = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+
+    /* ================= LOGOUT FUNCTIONALITY ================= */
+    logoutBtn.addEventListener('click', () => {
+      logoutModal.classList.add('show');
+    });
+
+    confirmLogoutBtn.addEventListener('click', async () => {
+      try {
+        showLoading();
+        
+        // Clear session
+        localStorage.removeItem('adminKey');
+        localStorage.removeItem('adminEmail');
+        localStorage.removeItem('ceoLoggedIn');
+        
+        // Redirect to login
+        setTimeout(() => {
+          window.location.href = 'admin-login.html';
+        }, 500);
+        
+      } catch (error) {
+        console.error('Logout error:', error);
+        showNotification('Logout failed. Please try again.', 'error');
+        hideLoading();
+      }
+    });
+
+    cancelLogoutBtn.addEventListener('click', () => {
+      logoutModal.classList.remove('show');
+    });
+
+    // Close modal on outside click
+    logoutModal.addEventListener('click', (e) => {
+      if (e.target === logoutModal) {
+        logoutModal.classList.remove('show');
+      }
+    });
+
+    /* ================= NAVIGATION ================= */
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = link.getAttribute('data-section');
+        
+        // Update active state
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        
+        // Show the selected section
+        showSection(section);
+      });
+    });
+
+    function showSection(section) {
+      // Hide all sections first
+      Object.values(sections).forEach(sec => {
+        if (sec) sec.style.display = 'none';
+      });
+      
+      // Show the selected section
+      if (sections[section]) {
+        sections[section].style.display = 'block';
+      }
+    }
+
+    /* ================= FILTER FUNCTIONALITY ================= */
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter') || 
+                      btn.getAttribute('data-role') || 
+                      btn.getAttribute('data-listing-filter');
+        
+        // Update active state
+        btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Apply filter based on parent section
+        if (btn.closest('#applicationsSection')) {
+          filterApplications(filter);
+        } else if (btn.closest('#listingsSection')) {
+          filterListings(filter);
+        } else if (btn.closest('#usersSection')) {
+          filterUsers(filter);
+        }
+      });
+    });
+
+    /* ================= GENERATE UNIQUE ADMIN KEY ================= */
+    async function generateUniqueAdminKey() {
+      return new Promise(resolve => {
+        const attempt = () => {
+          const key = Math.floor(100000 + Math.random() * 900000).toString();
+          db.ref("admins/" + key).once("value", snapshot => {
+            if (!snapshot.exists()) {
+              resolve(key);
+            } else {
+              attempt();
+            }
+          });
+        };
+        attempt();
+      });
+    }
+
+    /* ================= LOAD ALL DATA ================= */
+    async function loadAllData() {
+      try {
+        await Promise.all([
+          loadStats(),
+          loadApplications(),
+          loadPropertyListings(),
+          loadAdmins()
+        ]);
+        
+        console.log("All data loaded successfully");
+        
+      } catch (error) {
+        console.error('Error loading data:', error);
+        showNotification('Failed to load dashboard data', 'error');
+      }
+    }
+
+    /* ================= STATISTICS ================= */
+    async function loadStats() {
+      try {
+        const [studentsSnapshot, ownersSnapshot, adminsSnapshot, propertiesSnapshot] = await Promise.all([
+          db.ref('students').once('value'),
+          db.ref('propertyOwners').once('value'),
+          db.ref('admins').once('value'),
+          db.ref('properties').once('value')
+        ]);
+        
+        const students = studentsSnapshot.exists() ? Object.keys(studentsSnapshot.val()).length : 0;
+        const owners = ownersSnapshot.exists() ? Object.keys(ownersSnapshot.val()).length : 0;
+        const admins = adminsSnapshot.exists() ? Object.keys(adminsSnapshot.val()).length : 0;
+        
+        const totalUsers = students + owners + admins;
+        totalUsersElement.textContent = totalUsers;
+        totalAdminsElement.textContent = admins;
+        adminCountElement.textContent = admins;
+        
+        let totalProperties = 0;
+        let pendingListingsCount = 0;
+        
+        if (propertiesSnapshot.exists()) {
+          propertiesSnapshot.forEach(child => {
+            totalProperties++;
+            const property = child.val();
+            if (property.status === 'pending' || !property.status) {
+              pendingListingsCount++;
+            }
+          });
+        }
+        
+        totalPropertiesElement.textContent = totalProperties;
+        pendingListingsElement.textContent = pendingListingsCount;
+        pendingListingsCountElement.textContent = pendingListingsCount;
+        
+        renderUsersTable(studentsSnapshot, ownersSnapshot, adminsSnapshot);
+        
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    }
+
+    /* ================= APPLICATIONS ================= */
+    async function loadApplications() {
+      db.ref('adminApplicants').on('value', snapshot => {
+        if (!snapshot.exists()) {
+          applicationsGrid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px;">No applications found</p>';
+          pendingApplicationsElement.textContent = '0';
+          pendingCountElement.textContent = '0';
+          return;
+        }
+        
+        const applications = [];
+        let pendingCount = 0;
+        
+        snapshot.forEach(child => {
+          const app = child.val();
+          app.id = child.key;
+          applications.push(app);
+          
+          if (app.status === 'pending') {
+            pendingCount++;
+          }
+        });
+        
+        pendingApplicationsElement.textContent = pendingCount;
+        pendingCountElement.textContent = pendingCount;
+        renderApplications(applications);
+        filterApplications('all');
+      });
+    }
+
+    function renderApplications(applications) {
+      applicationsGrid.innerHTML = '';
+      
+      if (applications.length === 0) {
+        applicationsGrid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px;">No applications found</p>';
+        return;
+      }
+      
+      applications.forEach(application => {
+        const card = document.createElement('div');
+        card.className = 'application-card';
+        card.setAttribute('data-status', application.status);
+        
+        const statusClass = `status-${application.status}`;
+        const statusText = application.status.charAt(0).toUpperCase() + application.status.slice(1);
+        
+        card.innerHTML = `
+          <div class="app-header">
+            <div class="applicant-name">${application.fullName || 'N/A'}</div>
+            <div class="status-badge ${statusClass}">${statusText}</div>
+          </div>
+          <div class="app-details">
+            <p><i class="fas fa-envelope"></i> ${application.email || 'N/A'}</p>
+            <p><i class="fas fa-phone"></i> ${application.phone || 'N/A'}</p>
+            <p><i class="fas fa-calendar"></i> Applied: ${formatDate(application.appliedAt)}</p>
+            ${application.adminKey ? `<p><i class="fas fa-key"></i> Key: ${application.adminKey}</p>` : ''}
+          </div>
+          <div class="app-actions">
+            ${application.status === 'pending' ? `
+              <button class="action-btn accept-btn" data-id="${application.id}">
+                <i class="fas fa-check"></i> Accept
+              </button>
+              <button class="action-btn decline-btn" data-id="${application.id}">
+                <i class="fas fa-times"></i> Decline
+              </button>
+            ` : ''}
+            ${application.status === 'declined' ? `
+              <button class="action-btn undecline-btn" data-id="${application.id}">
+                <i class="fas fa-undo"></i> Undo Decline
+              </button>
+            ` : ''}
+          </div>
+        `;
+        
+        applicationsGrid.appendChild(card);
+      });
+      
+      // Add event listeners to action buttons
+      document.querySelectorAll('.accept-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          acceptApplication(btn.getAttribute('data-id'));
+        });
+      });
+      
+      document.querySelectorAll('.decline-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          declineApplication(btn.getAttribute('data-id'));
+        });
+      });
+      
+      document.querySelectorAll('.undecline-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          undeclineApplication(btn.getAttribute('data-id'));
+        });
+      });
+    }
+
+    function filterApplications(filter) {
+      const cards = applicationsGrid.querySelectorAll('.application-card');
+      
+      cards.forEach(card => {
+        if (filter === 'all' || card.getAttribute('data-status') === filter) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    /* ================= APPLICATION ACTIONS ================= */
+    async function acceptApplication(applicantId) {
+      try {
+        showLoading();
+        const adminKey = await generateUniqueAdminKey();
+        
+        const snapshot = await db.ref(`adminApplicants/${applicantId}`).once('value');
+        const applicant = snapshot.val();
+        
+        await db.ref(`adminApplicants/${applicantId}`).update({
+          status: 'approved',
+          adminKey: adminKey,
+          approvedAt: Date.now(),
+          keyViews: 0
+        });
+        
+        await db.ref(`admins/${adminKey}`).set({
+          ...applicant,
+          adminKey: adminKey,
+          status: 'approved',
+          role: 'admin',
+          approvedAt: Date.now(),
+          createdAt: Date.now(),
+          lastLogin: null
+        });
+        
+        await loadStats();
+        
+        hideLoading();
+        showNotification('Application approved successfully!', 'success');
+      } catch (error) {
+        console.error('Error accepting application:', error);
+        hideLoading();
+        showNotification('Failed to approve application', 'error');
+      }
+    }
+
+    async function declineApplication(applicantId) {
+      try {
+        showLoading();
+        await db.ref(`adminApplicants/${applicantId}`).update({
+          status: 'declined',
+          declinedAt: Date.now()
+        });
+        hideLoading();
+        showNotification('Application declined', 'warning');
+      } catch (error) {
+        console.error('Error declining application:', error);
+        hideLoading();
+        showNotification('Failed to decline application', 'error');
+      }
+    }
+
+    async function undeclineApplication(applicantId) {
+      try {
+        showLoading();
+        await db.ref(`adminApplicants/${applicantId}`).update({
+          status: 'pending'
+        });
+        hideLoading();
+        showNotification('Application status reverted to pending', 'info');
+      } catch (error) {
+        console.error('Error undoing decline:', error);
+        hideLoading();
+        showNotification('Failed to update application', 'error');
+      }
+    }
+
+    /* ================= PROPERTY LISTINGS ================= */
+    async function loadPropertyListings() {
+      db.ref('properties').on('value', snapshot => {
+        if (!snapshot.exists()) {
+          listingsGrid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px;">No property listings found</p>';
+          return;
+        }
+        
+        const listings = [];
+        let pendingCount = 0;
+        
+        snapshot.forEach(child => {
+          const listing = child.val();
+          listing.id = child.key;
+          listings.push(listing);
+          
+          if (listing.status === 'pending' || !listing.status) {
+            pendingCount++;
+          }
+        });
+        
+        pendingListingsElement.textContent = pendingCount;
+        pendingListingsCountElement.textContent = pendingCount;
+        renderPropertyListings(listings);
+        filterListings('all');
+      });
+    }
+
+    function renderPropertyListings(listings) {
+      listingsGrid.innerHTML = '';
+      
+      if (listings.length === 0) {
+        listingsGrid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px;">No property listings found</p>';
+        return;
+      }
+      
+      listings.forEach(listing => {
+        const card = document.createElement('div');
+        card.className = 'listing-card';
+        card.setAttribute('data-status', listing.status || 'pending');
+        
+        const status = listing.status || 'pending';
+        const statusClass = `status-${status}`;
+        const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+        
+        const ownerName = listing.ownerName || 'Unknown Owner';
+        const ownerEmail = listing.ownerEmail || 'N/A';
+        
+        card.innerHTML = `
+          ${listing.imageUrl ? `
+            <img src="${listing.imageUrl}" alt="${listing.title}" class="listing-image" onerror="this.src='https://via.placeholder.com/400x200/1e293b/64748b?text=Property+Image'">
+          ` : ''}
+          <div class="listing-header">
+            <div>
+              <div class="listing-title">${listing.title || 'Untitled Property'}</div>
+              <div class="status-badge ${statusClass}">${statusText}</div>
+            </div>
+            <div class="listing-price">₦${listing.price || '0'}/month</div>
+          </div>
+          <div class="listing-details">
+            <p><i class="fas fa-user"></i> ${ownerName} (${ownerEmail})</p>
+            <p><i class="fas fa-map-marker-alt"></i> ${listing.location || 'Location not specified'}</p>
+            <p><i class="fas fa-bed"></i> ${listing.bedrooms || 'N/A'} beds • <i class="fas fa-bath"></i> ${listing.bathrooms || 'N/A'} baths</p>
+            <p><i class="fas fa-calendar"></i> Posted: ${formatDate(listing.createdAt)}</p>
+          </div>
+          <div class="listing-actions">
+            ${status === 'pending' ? `
+              <button class="action-btn accept-btn" data-id="${listing.id}" onclick="approveListing('${listing.id}')">
+                <i class="fas fa-check"></i> Approve
+              </button>
+              <button class="action-btn decline-btn" data-id="${listing.id}" onclick="rejectListing('${listing.id}')">
+                <i class="fas fa-times"></i> Reject
+              </button>
+            ` : ''}
+            ${status === 'rejected' ? `
+              <button class="action-btn undecline-btn" data-id="${listing.id}" onclick="undoRejectListing('${listing.id}')">
+                <i class="fas fa-undo"></i> Undo Reject
+              </button>
+            ` : ''}
+            ${status === 'approved' ? `
+              <button class="action-btn decline-btn" data-id="${listing.id}" onclick="rejectListing('${listing.id}')">
+                <i class="fas fa-ban"></i> Hide Listing
+              </button>
+            ` : ''}
+          </div>
+        `;
+        
+        listingsGrid.appendChild(card);
+      });
+    }
+
+    function filterListings(filter) {
+      const cards = listingsGrid.querySelectorAll('.listing-card');
+      
+      cards.forEach(card => {
+        if (filter === 'all' || card.getAttribute('data-status') === filter) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    /* ================= LISTING ACTIONS ================= */
+    window.approveListing = async function(listingId) {
+      try {
+        showLoading();
+        await db.ref(`properties/${listingId}`).update({
+          status: 'approved',
+          approvedAt: Date.now(),
+          approvedBy: 'CEO',
+          visibleToStudents: true
+        });
+        
+        await loadStats();
+        
+        hideLoading();
+        showNotification('Property listing approved!', 'success');
+      } catch (error) {
+        console.error('Error approving listing:', error);
+        hideLoading();
+        showNotification('Failed to approve listing', 'error');
+      }
+    };
+
+    window.rejectListing = async function(listingId) {
+      try {
+        showLoading();
+        await db.ref(`properties/${listingId}`).update({
+          status: 'rejected',
+          rejectedAt: Date.now(),
+          rejectedBy: 'CEO',
+          visibleToStudents: false
+        });
+        
+        await loadStats();
+        
+        hideLoading();
+        showNotification('Property listing rejected', 'warning');
+      } catch (error) {
+        console.error('Error rejecting listing:', error);
+        hideLoading();
+        showNotification('Failed to reject listing', 'error');
+      }
+    };
+
+    window.undoRejectListing = async function(listingId) {
+      try {
+        showLoading();
+        await db.ref(`properties/${listingId}`).update({
+          status: 'pending',
+          rejectedAt: null,
+          rejectedBy: null,
+          visibleToStudents: false
+        });
+        
+        await loadStats();
+        
+        hideLoading();
+        showNotification('Listing status reverted to pending', 'info');
+      } catch (error) {
+        console.error('Error undoing reject:', error);
+        hideLoading();
+        showNotification('Failed to update listing', 'error');
+      }
+    };
+
+    /* ================= USERS TABLE ================= */
+    function renderUsersTable(studentsSnapshot, ownersSnapshot, adminsSnapshot) {
+      usersTable.innerHTML = '';
+      const allUsers = [];
+      
+      if (studentsSnapshot.exists()) {
+        studentsSnapshot.forEach(child => {
+          const student = child.val();
+          allUsers.push({
+            name: student.fullName,
+            email: student.email,
+            role: 'student',
+            status: 'active',
+            joined: student.createdAt
+          });
+        });
+      }
+      
+      if (ownersSnapshot.exists()) {
+        ownersSnapshot.forEach(child => {
+          const owner = child.val();
+          allUsers.push({
+            name: owner.fullName,
+            email: owner.email,
+            role: 'propertyOwner',
+            status: owner.verified ? 'verified' : 'pending',
+            joined: owner.createdAt
+          });
+        });
+      }
+      
+      if (adminsSnapshot.exists()) {
+        adminsSnapshot.forEach(child => {
+          const admin = child.val();
+          allUsers.push({
+            name: admin.fullName,
+            email: admin.email,
+            role: admin.role === 'ceo' ? 'ceo' : 'admin',
+            status: 'active',
+            joined: admin.createdAt
+          });
+        });
+      }
+      
+      allUsers.sort((a, b) => (b.joined || 0) - (a.joined || 0));
+      
+      if (allUsers.length === 0) {
+        usersTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray); padding: 40px;">No users found</td></tr>';
+        return;
+      }
+      
+      allUsers.forEach(user => {
+        const row = document.createElement('tr');
+        const roleClass = `role-${user.role}`;
+        const roleText = user.role === 'propertyOwner' ? 'Owner' : 
+                        user.role === 'ceo' ? 'CEO' : 
+                        user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        
+        row.innerHTML = `
+          <td>${user.name || 'N/A'}</td>
+          <td>${user.email || 'N/A'}</td>
+          <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+          <td>${user.status}</td>
+          <td>${formatDate(user.joined)}</td>
+        `;
+        row.setAttribute('data-role', user.role);
+        usersTable.appendChild(row);
+      });
+    }
+
+    function filterUsers(role) {
+      const rows = usersTable.querySelectorAll('tr');
+      
+      rows.forEach(row => {
+        if (role === 'all' || row.getAttribute('data-role') === role) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    /* ================= ADMINS TABLE ================= */
+    async function loadAdmins() {
+      db.ref('admins').on('value', snapshot => {
+        if (!snapshot.exists()) {
+          adminsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray); padding: 40px;">No administrators found</td></tr>';
+          totalAdminsElement.textContent = '0';
+          adminCountElement.textContent = '0';
+          return;
+        }
+        
+        const admins = [];
+        snapshot.forEach(child => {
+          const admin = child.val();
+          admin.id = child.key;
+          admins.push(admin);
+        });
+        
+        totalAdminsElement.textContent = admins.length;
+        adminCountElement.textContent = admins.length;
+        renderAdminsTable(admins);
+      });
+    }
+
+    function renderAdminsTable(admins) {
+      adminsTable.innerHTML = '';
+      
+      if (admins.length === 0) {
+        adminsTable.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray); padding: 40px;">No administrators found</td></tr>';
+        return;
+      }
+      
+      admins.forEach(admin => {
+        const row = document.createElement('tr');
+        const isCEO = admin.email === 'jesseegwuatu@gmail.com';
+        
+        row.innerHTML = `
+          <td>
+            <strong>${admin.fullName}</strong>
+            ${isCEO ? ' <span class="role-badge role-ceo">CEO</span>' : ''}
+          </td>
+          <td><code style="background: rgba(99, 102, 241, 0.1); padding: 4px 8px; border-radius: 4px;">${admin.adminKey || admin.id}</code></td>
+          <td>${admin.email}</td>
+          <td>${admin.lastLogin ? formatDate(admin.lastLogin) : 'Never'}</td>
+          <td>
+            ${!isCEO ? `
+              <button class="action-btn decline-btn" style="padding: 6px 12px; font-size: 0.85rem;" onclick="removeAdmin('${admin.id}')">
+                <i class="fas fa-trash"></i> Remove
+              </button>
+            ` : '<span style="color: var(--gray);">Protected</span>'}
+          </td>
+        `;
+        
+        adminsTable.appendChild(row);
+      });
+    }
+
+    window.removeAdmin = async function(adminKey) {
+      if (confirm('Are you sure you want to remove this administrator?')) {
+        try {
+          showLoading();
+          await db.ref(`admins/${adminKey}`).remove();
+          
+          const applicantsSnapshot = await db.ref('adminApplicants').orderByChild('adminKey').equalTo(adminKey).once('value');
+          if (applicantsSnapshot.exists()) {
+            applicantsSnapshot.forEach(child => {
+              child.ref.remove();
+            });
+          }
+          
+          hideLoading();
+          showNotification('Administrator removed successfully', 'success');
+        } catch (error) {
+          console.error('Error removing admin:', error);
+          hideLoading();
+          showNotification('Failed to remove administrator', 'error');
+        }
+      }
+    };
+
+    /* ================= UTILITY FUNCTIONS ================= */
+    function formatDate(timestamp) {
+      if (!timestamp) return 'N/A';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 
+                     type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                     type === 'warning' ? 'rgba(245, 158, 11, 0.9)' : 'rgba(99, 102, 241, 0.9)'};
+        color: white;
+        border-radius: var(--border-radius-sm);
+        z-index: 1000;
+        font-weight: 500;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.3s ease;
+      `;
+      
+      notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'exclamation-circle' : 
+                         type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+        ${message}
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    function setupEventListeners() {
+      // All event listeners are already set up
+    }
+
+    /* ================= START APPLICATION ================= */
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

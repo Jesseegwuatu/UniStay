@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Administrator Application | UniStay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --light-gray: #e2e8f0;
+      --border-radius: 16px;
+      --border-radius-sm: 10px;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.12);
+      --transition: all 0.3s ease;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--dark);
+    }
+
+    /* Application Container */
+    .application-container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .application-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .application-header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .application-header p {
+      color: var(--gray);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Application Box */
+    .application-box {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 600px;
+    }
+
+    /* Left Panel - Information */
+    .application-info {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .application-info:before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    .info-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-list {
+      list-style: none;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-list li {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+    }
+
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .admin-stats {
+      display: flex;
+      gap: 30px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    /* Right Panel - Form */
+    .application-form {
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-header {
+      margin-bottom: 30px;
+    }
+
+    .form-header h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+
+    .form-header p {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    /* Form Styling */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 22px;
+    }
+
+    .form-label {
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 0.95rem;
+    }
+
+    .form-label .required {
+      color: var(--danger);
+      margin-left: 3px;
+    }
+
+    .form-input {
+      padding: 14px 15px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--light-gray);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: var(--transition);
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .phone-input {
+      position: relative;
+    }
+
+    .phone-prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+      font-weight: 500;
+    }
+
+    .phone-input .form-input {
+      padding-left: 50px;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .password-strength {
+      height: 4px;
+      background: var(--light-gray);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .strength-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--danger);
+      transition: var(--transition);
+      border-radius: 2px;
+    }
+
+    /* Buttons */
+    .form-buttons {
+      margin-top: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: var(--border-radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      margin-top: 15px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(99, 102, 241, 0.05);
+      transform: translateY(-3px);
+    }
+
+    /* Modal Styling */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal.show {
+      display: flex;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px 30px;
+      border-radius: var(--border-radius);
+      max-width: 450px;
+      width: 100%;
+      position: relative;
+      box-shadow: var(--shadow-hover);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+      text-align: center;
+    }
+
+    .modal.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      text-align: center;
+      width: 100%;
+    }
+
+    .modal-header h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+
+    .modal-header p {
+      color: var(--gray);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: var(--gray);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .close-modal:hover {
+      background: var(--light-gray);
+    }
+
+    .admin-key {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+      padding: 15px 25px;
+      border-radius: var(--border-radius-sm);
+      margin: 10px 0;
+      width: 100%;
+      word-break: break-all;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .status-approved {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .status-declined {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .modal-icon {
+      font-size: 3.5rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .application-box {
+        grid-template-columns: 1fr;
+      }
+      
+      .application-info {
+        padding: 40px 30px;
+      }
+      
+      .application-header h1 {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .application-info, .application-form {
+        padding: 30px 20px;
+      }
+      
+      .application-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .info-title {
+        font-size: 1.5rem;
+      }
+      
+      .form-header h2 {
+        font-size: 1.5rem;
+      }
+      
+      .admin-stats {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      body {
+        padding: 10px;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.6s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="application-container fade-up">
+    <div class="application-header">
+      <h1>Administrator Application</h1>
+      <p>Apply to help manage and verify UniStay platform operations</p>
+    </div>
+    
+    <div class="application-box">
+      <!-- Left Panel - Information -->
+      <div class="application-info">
+        <h2 class="info-title">Administrator Role Responsibilities</h2>
+        <ul class="info-list">
+          <li>
+            <div class="info-icon"><i class="fas fa-shield-alt"></i></div>
+            <span>Verify property listings for authenticity</span>
+          </li>
+          <li>
+            <div class="info-icon"><i class="fas fa-user-check"></i></div>
+            <span>Approve new student and owner accounts</span>
+          </li>
+          <li>
+            <div class="info-icon"><i class="fas fa-flag"></i></div>
+            <span>Monitor and resolve user reports</span>
+          </li>
+          <li>
+            <div class="info-icon"><i class="fas fa-chart-bar"></i></div>
+            <span>Analyze platform usage statistics</span>
+          </li>
+          <li>
+            <div class="info-icon"><i class="fas fa-cogs"></i></div>
+            <span>Manage system settings and configurations</span>
+          </li>
+        </ul>
+        
+        <div class="admin-stats">
+          <div class="stat-item">
+            <div class="stat-value">24/7</div>
+            <div class="stat-label">Monitoring</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">98%</div>
+            <div class="stat-label">Verification Rate</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">48h</div>
+            <div class="stat-label">Response Time</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Panel - Form -->
+      <div class="application-form">
+        <div class="form-header">
+          <h2>Apply for Administrator Access</h2>
+          <p>Complete the form below to submit your application for review</p>
+        </div>
+        
+        <form id="adminApplicationForm">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" id="fullName" class="form-input" placeholder="Enter your full name" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <input type="email" id="email" class="form-input" placeholder="admin@example.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="required">*</span></label>
+            <div class="phone-input">
+              <span class="phone-prefix">+234</span>
+              <input type="tel" id="phone" class="form-input" placeholder="8012345678" required minlength="10" maxlength="10" pattern="[0-9]{10}" title="Enter 10-digit Nigerian phone number (without spaces)">
+            </div>
+            <small style="color: var(--gray); margin-top: 5px; display: block;">Enter 10 digits without spaces (e.g., 8012345678)</small>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="form-input" placeholder="Create a strong password" required minlength="8">
+              <button type="button" class="toggle-password" id="togglePassword">
+                <i class="far fa-eye"></i>
+              </button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar" id="strengthBar"></div>
+            </div>
+            <small style="color: var(--gray); margin-top: 5px; display: block;">Minimum 8 characters with letters and numbers</small>
+          </div>
+          
+          <div class="form-buttons">
+            <button type="submit" class="btn btn-primary" id="applyBtn">
+              <i class="fas fa-paper-plane"></i> Apply to be Administrator
+            </button>
+          </div>
+        </form>
+        
+        <button class="btn btn-secondary" onclick="window.location.href='admin-login.html'">
+          <i class="fas fa-sign-in-alt"></i> Already an Admin? Login Here
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Modal -->
+  <div class="modal" id="applicationModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <div id="modalContent">
+        <!-- Modal content will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWOFJN21yu4u4miNU3e64CvQkNCGZX_qU",
+      authDomain: "unistay-5e6b4.firebaseapp.com",
+      databaseURL: "https://unistay-5e6b4-default-rtdb.firebaseio.com",
+      projectId: "unistay-5e6b4",
+      storageBucket: "unistay-5e6b4.firebasestorage.app",
+      messagingSenderId: "551189171944",
+      appId: "1:551189171944:web:81f5f686f7d31a0a3a035d"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    
+    // DOM Elements
+    const adminApplicationForm = document.getElementById('adminApplicationForm');
+    const applyBtn = document.getElementById('applyBtn');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const phoneInput = document.getElementById('phone');
+    const strengthBar = document.getElementById('strengthBar');
+    const modal = document.getElementById('applicationModal');
+    const closeModal = document.getElementById('closeModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Fix phone number validation - accept only 10 digits without formatting
+    phoneInput.addEventListener('input', (e) => {
+      // Remove all non-digit characters
+      let value = e.target.value.replace(/\D/g, '');
+      
+      // Limit to 10 digits
+      if (value.length > 10) {
+        value = value.substring(0, 10);
+      }
+      
+      e.target.value = value;
+    });
+    
+    // Toggle Password Visibility
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      togglePassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+    });
+    
+    // Password Strength Indicator
+    passwordInput.addEventListener('input', () => {
+      const password = passwordInput.value;
+      let strength = 0;
+      
+      if (password.length >= 8) strength += 25;
+      if (/[A-Z]/.test(password)) strength += 25;
+      if (/[0-9]/.test(password)) strength += 25;
+      if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+      
+      strengthBar.style.width = `${strength}%`;
+      
+      if (strength < 50) {
+        strengthBar.style.background = 'var(--danger)';
+      } else if (strength < 75) {
+        strengthBar.style.background = 'var(--warning)';
+      } else {
+        strengthBar.style.background = 'var(--success)';
+      }
+    });
+    
+    // Show Loading State
+    function showLoading(button, text) {
+      const originalText = button.innerHTML;
+      button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+      button.disabled = true;
+      return originalText;
+    }
+    
+    // Restore Button State
+    function restoreButton(button, originalText) {
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }
+    
+    // Show Modal with auto-close and redirect
+    function showModal(html, autoClose = false, redirect = false) {
+      modalContent.innerHTML = html;
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      
+      if (autoClose) {
+        setTimeout(() => {
+          modal.classList.remove('show');
+          document.body.style.overflow = 'auto';
+          if (redirect) {
+            window.location.href = 'admin-login.html';
+          }
+        }, 5000);
+      }
+    }
+    
+    // Close Modal
+    closeModal.addEventListener('click', () => {
+      modal.classList.remove('show');
+      document.body.style.overflow = 'auto';
+    });
+    
+    // Form Validation
+    function validateAdminForm(fullName, email, phone, password) {
+      let errors = [];
+      
+      if (!fullName.trim()) errors.push("Full name is required");
+      if (!email.trim()) errors.push("Email is required");
+      if (!phone.trim()) errors.push("Phone number is required");
+      if (!password) errors.push("Password is required");
+      
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (email && !emailRegex.test(email)) errors.push("Please enter a valid email address");
+      
+      // Phone validation - exact 10 digits
+      if (phone && phone.length !== 10) errors.push("Please enter exactly 10-digit Nigerian phone number");
+      if (phone && !/^[0-9]{10}$/.test(phone)) errors.push("Phone number should contain only digits");
+      
+      // Password strength validation
+      if (password && password.length < 8) errors.push("Password must be at least 8 characters");
+      if (password && !/[A-Z]/.test(password)) errors.push("Password should contain at least one uppercase letter");
+      if (password && !/[0-9]/.test(password)) errors.push("Password should contain at least one number");
+      
+      return errors;
+    }
+    
+    // Generate 6-digit Admin Key
+    function generateAdminKey() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    
+    // Admin Application Submission
+    adminApplicationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      
+      // Special case for CEO - redirect to login
+      if (email === "jesseegwuatu@gmail.com") {
+        showModal(`
+          <div class="modal-icon"><i class="fas fa-crown"></i></div>
+          <div class="modal-header">
+            <h3>Welcome, CEO</h3>
+            <p>You have direct administrative access. Please use the login page instead.</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.location.href='admin-login.html'">
+            <i class="fas fa-sign-in-alt"></i> Go to Admin Login
+          </button>
+        `, false, false);
+        return;
+      }
+      
+      // Validate form
+      const errors = validateAdminForm(fullName, email, phone, password);
+      if (errors.length > 0) {
+        alert(`Please fix the following errors:\n\n• ${errors.join('\n• ')}`);
+        return;
+      }
+      
+      // Show loading state
+      const originalBtnText = showLoading(applyBtn, "Submitting Application...");
+      
+      try {
+        // Format phone number
+        const formattedPhone = `+234${phone}`;
+        
+        // Create user with email and password
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+        
+        // Check if application already exists in adminApplicants
+        const snapshot = await db.ref('adminApplicants/' + uid).get();
+        
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          
+          // Case 1: Application is still pending
+          if (data.status === "pending") {
+            showModal(`
+              <div class="modal-icon"><i class="fas fa-clock"></i></div>
+              <div class="modal-header">
+                <h3>Application Still Under Review</h3>
+                <p>Your application is currently being reviewed by our team. You will be notified once a decision is made.</p>
+              </div>
+              <div class="status-indicator status-pending">
+                <i class="fas fa-hourglass-half"></i> Pending Review
+              </div>
+            `, true, false);
+            restoreButton(applyBtn, originalBtnText);
+            return;
+          }
+          
+          // Case 2: Application was declined
+          if (data.status === "declined") {
+            showModal(`
+              <div class="modal-icon"><i class="fas fa-times-circle"></i></div>
+              <div class="modal-header">
+                <h3 style="color: var(--danger)">Access Denied</h3>
+                <p>Your application was not approved. Please contact support for more information.</p>
+              </div>
+              <div class="status-indicator status-declined">
+                <i class="fas fa-ban"></i> Application Declined
+              </div>
+            `, true, false);
+            restoreButton(applyBtn, originalBtnText);
+            return;
+          }
+          
+          // Case 3: Application was approved - show admin key (first 3 times only)
+          if (data.status === "approved") {
+            if (data.keyViews < 3) {
+              // Update key views count
+              await db.ref('adminApplicants/' + uid).update({
+                keyViews: (data.keyViews || 0) + 1
+              });
+              
+              // Show admin key
+              showModal(`
+                <div class="modal-icon"><i class="fas fa-key"></i></div>
+                <div class="modal-header">
+                  <h3>Administrative Access Granted</h3>
+                  <p>Your application has been approved! Use this 6-digit key to login.</p>
+                </div>
+                <div class="admin-key">${data.adminKey}</div>
+                <button class="btn btn-primary" id="copyKeyBtn">
+                  <i class="fas fa-copy"></i> Copy Key
+                </button>
+                <p style="color: var(--gray); font-size: 0.9rem;">You will be redirected to login page in 5 seconds...</p>
+              `, true, true);
+              
+              // Add copy functionality
+              setTimeout(() => {
+                const copyBtn = document.getElementById('copyKeyBtn');
+                if (copyBtn) {
+                  copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(data.adminKey)
+                      .then(() => {
+                        alert('Administrative key copied to clipboard!');
+                      })
+                      .catch(err => {
+                        console.error('Failed to copy key:', err);
+                      });
+                  });
+                }
+              }, 100);
+              
+            } else {
+              // Key views exceeded
+              showModal(`
+                <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="modal-header">
+                  <h3>Key Views Exceeded</h3>
+                  <p>You have exceeded the maximum key views. Please login with your existing credentials.</p>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='admin-login.html'">
+                  <i class="fas fa-sign-in-alt"></i> Go to Login
+                </button>
+              `, false, false);
+            }
+            restoreButton(applyBtn, originalBtnText);
+            return;
+          }
+        }
+        
+        // Create new application (first-time submission)
+        await db.ref('adminApplicants/' + uid).set({
+          fullName,
+          email,
+          phone: formattedPhone,
+          status: "pending",
+          appliedAt: firebase.database.ServerValue.TIMESTAMP,
+          keyViews: 0,
+          // Store password for CEO to see (in real app, this should be encrypted)
+          password: password
+        });
+        
+        // Show success modal - "Your application has been sent"
+        showModal(`
+          <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="modal-header">
+            <h3>Application Submitted Successfully</h3>
+            <p>Your administrator application has been sent and is now under review.</p>
+          </div>
+          <div class="status-indicator status-pending">
+            <i class="fas fa-hourglass-half"></i> Awaiting Review
+          </div>
+          <p style="color: var(--gray); font-size: 0.9rem;">You will be notified once a decision is made.</p>
+        `, true, false);
+        
+      } catch (error) {
+        // Handle errors
+        let errorMessage = "An error occurred during application submission.";
+        
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = "This email is already registered.";
+            break;
+          case 'auth/invalid-email':
+            errorMessage = "Please enter a valid email address.";
+            break;
+          case 'auth/weak-password':
+            errorMessage = "Password is too weak. Please use a stronger password.";
+            break;
+          default:
+            errorMessage = error.message;
+        }
+        
+        alert(errorMessage);
+        restoreButton(applyBtn, originalBtnText);
+      }
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+      }
+    });
+    
+    // Clear phone input on page load to prevent any formatting issues
+    window.addEventListener('DOMContentLoaded', () => {
+      phoneInput.value = '';
+      phoneInput.focus();
+    });
+  </script>
+
+</body>
+</html>
