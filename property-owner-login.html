@@ -2,303 +2,1558 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Property Owner Login | UniStay</title>
+  <title>Property Owner Dashboard | UniStay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  
+  <!-- Leaflet for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
   <style>
+    /* ================== ROOT VARIABLES ================== */
     :root {
       --primary: #6366f1;
+      --primary-light: #818cf8;
       --primary-dark: #4f46e5;
       --secondary: #8b5cf6;
       --accent: #ec4899;
-      --light: #f8fafc;
-      --dark: #1e293b;
-      --gray: #64748b;
-      --light-gray: #e2e8f0;
+      --accent-light: #f472b6;
       --success: #10b981;
-      --border-radius: 16px;
-      --border-radius-sm: 10px;
-      --shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-      --shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.12);
-      --transition: all 0.3s ease;
+      --success-light: #34d399;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      
+      --dark: #0f172a;
+      --dark-light: #1e293b;
+      --darker: #020617;
+      --gray: #64748b;
+      --gray-light: #94a3b8;
+      --light: #f8fafc;
+      --lighter: #ffffff;
+      
+      --glass: rgba(255, 255, 255, 0.25);
+      --glass-dark: rgba(15, 23, 42, 0.85);
+      --blur: blur(20px);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      --shadow-dark: 0 25px 50px rgba(0, 0, 0, 0.25);
+      --shadow-light: 0 10px 30px rgba(99, 102, 241, 0.15);
+      --radius: 20px;
+      --radius-sm: 12px;
+      --radius-lg: 30px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
+    /* ================== BASE STYLES ================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+      background: linear-gradient(135deg, #f0f4ff, #fdf2f8);
+      color: var(--dark);
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ================== CUSTOM SCROLLBAR ================== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+
+    /* ================== HEADER ================== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      backdrop-filter: var(--blur);
+      background: var(--glass);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .header.scrolled {
+      background: var(--glass-dark);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: var(--dark);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .menu-toggle:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      color: var(--dark);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
     }
 
-    /* Login Container */
-    .login-container {
-      width: 100%;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .login-header h1 {
+    .logo-text {
       font-family: 'Poppins', sans-serif;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
+      font-weight: 700;
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
 
-    .login-header p {
-      color: var(--gray);
-      font-size: 1.1rem;
+    .header-center {
+      flex: 1;
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 30px;
     }
 
-    /* Login Box */
-    .login-box {
-      background: #fff;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      min-height: 550px;
-    }
-
-    /* Left Panel - Welcome */
-    .login-welcome {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      padding: 50px 40px;
+    .header-right {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .notification-btn {
+      position: relative;
+      background: none;
+      border: none;
+      color: var(--dark);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .notification-btn:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .user-profile {
+      position: relative;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
       justify-content: center;
       color: white;
-      position: relative;
-      overflow: hidden;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 3px solid rgba(255, 255, 255, 0.3);
     }
 
-    .login-welcome:before {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 200px;
-      height: 200px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
+    .avatar:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-light);
     }
 
-    .login-welcome:after {
-      content: '';
-      position: absolute;
-      bottom: -80px;
-      left: -80px;
-      width: 250px;
-      height: 250px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 50%;
+    .avatar.has-image,
+    .sidebar-user-avatar.has-image {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: transparent;
     }
 
-    .welcome-title {
-      font-family: 'Poppins', sans-serif;
-      font-size: 1.8rem;
-      margin-bottom: 30px;
-      position: relative;
-      z-index: 1;
+    /* ================== SIDEBAR ================== */
+    .sidebar {
+      position: fixed;
+      left: -300px;
+      top: 0;
+      bottom: 0;
+      width: 300px;
+      background: var(--glass-dark);
+      backdrop-filter: var(--blur);
+      z-index: 999;
+      padding: 30px 20px;
+      transition: var(--transition-slow);
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .welcome-features {
-      list-style: none;
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 40px;
-      position: relative;
-      z-index: 1;
     }
 
-    .welcome-features li {
+    .sidebar-user {
       display: flex;
       align-items: center;
       gap: 15px;
-      margin-bottom: 18px;
-      font-size: 1.05rem;
+      margin-bottom: 30px;
     }
 
-    .feature-icon {
-      width: 34px;
-      height: 34px;
-      background: rgba(255, 255, 255, 0.2);
+    .sidebar-user-avatar {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.95rem;
-      flex-shrink: 0;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
     }
 
-    .owner-quote {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .quote-text {
-      font-style: italic;
-      margin-bottom: 10px;
-      line-height: 1.5;
-    }
-
-    .quote-author {
-      font-weight: 500;
-      font-size: 0.9rem;
-      opacity: 0.9;
-    }
-
-    /* Right Panel - Form */
-    .login-form {
-      padding: 50px 40px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-header {
-      margin-bottom: 30px;
-    }
-
-    .form-header h2 {
+    .sidebar-user-info h3 {
       font-family: 'Poppins', sans-serif;
-      font-size: 1.8rem;
-      color: var(--dark);
-      margin-bottom: 10px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: white;
     }
 
-    .form-header p {
-      color: var(--gray);
-      font-size: 0.95rem;
+    .sidebar-user-info p {
+      color: var(--gray-light);
+      font-size: 0.9rem;
     }
 
-    /* Form Styling */
-    .form-group {
+    .sidebar-nav {
       display: flex;
       flex-direction: column;
-      margin-bottom: 22px;
+      gap: 10px;
     }
 
-    .form-label {
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--dark);
-      font-size: 0.95rem;
-    }
-
-    .form-input {
-      padding: 14px 15px;
-      border-radius: var(--border-radius-sm);
-      border: 1px solid var(--light-gray);
-      font-family: 'Inter', sans-serif;
-      font-size: 1rem;
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 20px;
+      border-radius: var(--radius-sm);
+      color: var(--gray-light);
+      text-decoration: none;
       transition: var(--transition);
-      background: white;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .form-input::placeholder {
-      color: #94a3b8;
-    }
-
-    .password-wrapper {
       position: relative;
+      cursor: pointer;
     }
 
-    .toggle-password {
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: var(--shadow-light);
+    }
+
+    .nav-item i {
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .nav-item .badge {
       position: absolute;
       right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--gray);
-      cursor: pointer;
-      font-size: 1rem;
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
     }
 
-    /* Form Options */
-    .form-options {
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* ================== MAIN CONTENT ================== */
+    .main-content {
+      padding: 100px 24px 100px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ================== HERO SECTION ================== */
+    .hero-section {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--gray);
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    /* ================== STATS CARDS ================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-dark);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      transition: var(--transition);
+    }
+
+    .stat-value {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      transition: var(--transition);
+    }
+
+    .stat-label {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* ================== CONTENT TABS ================== */
+    .content-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      background: white;
+      padding: 10px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+    }
+
+    .content-tab {
+      flex: 1;
+      min-width: 150px;
+      padding: 15px 20px;
+      border: none;
+      background: none;
+      font-weight: 600;
+      color: var(--gray);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .content-tab:hover {
+      background: #f8fafc;
+      color: var(--primary);
+    }
+
+    .content-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: var(--shadow-light);
+    }
+
+    /* ================== CONTENT SECTIONS ================== */
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ================== LISTINGS GRID ================== */
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+    }
+
+    .listing-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .listing-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--shadow-dark);
+    }
+
+    .listing-image {
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .listing-cover-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .listing-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 2;
+    }
+
+    .listing-badge.approved {
+      color: var(--success);
+    }
+
+    .listing-badge.pending {
+      color: var(--warning);
+    }
+
+    .listing-badge.rejected {
+      color: var(--danger);
+    }
+
+    .listing-content {
+      padding: 25px;
+    }
+
+    .listing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+
+    .listing-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+
+    .listing-price {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .listing-price span {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .listing-meta {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 15px;
+      color: var(--gray);
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .listing-location {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gray);
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    .listing-location i {
+      color: var(--primary);
+    }
+
+    .listing-description {
+      color: var(--gray);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .listing-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-light);
+    }
+
+    .action-btn.secondary {
+      background: #f1f5f9;
+      color: var(--dark);
+    }
+
+    .action-btn.secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .action-btn.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .action-btn.danger:hover {
+      background: #dc2626;
+    }
+
+    /* ================== MESSAGES SECTION ================== */
+    .messages-container {
+      background: white;
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .messages-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
     }
 
-    .remember-me {
+    .conversations-sidebar {
+      background: #f8fafc;
+      border-radius: var(--radius);
+      padding: 20px;
+      height: 500px;
+      overflow-y: auto;
+    }
+
+    .conversation-item {
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+      border-left: 4px solid transparent;
+    }
+
+    .conversation-item.unread {
+      background: #f0f9ff;
+      border-left-color: var(--primary);
+    }
+
+    .conversation-item:hover {
+      background: #f1f5f9;
+      transform: translateX(5px);
+    }
+
+    .conversation-item.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .conversation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .conversation-user {
+      font-weight: 600;
+    }
+
+    .conversation-time {
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+
+    .conversation-item.active .conversation-time {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .conversation-preview {
+      color: var(--gray);
+      font-size: 0.9rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .conversation-item.active .conversation-preview {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .chat-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      height: 600px;
+    }
+
+    .chat-messages {
+      background: #f8fafc;
+      border-radius: var(--radius);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 15px;
+      border-radius: var(--radius-sm);
+      position: relative;
+    }
+
+    .message.received {
+      background: white;
+      align-self: flex-start;
+      border: 1px solid #e2e8f0;
+    }
+
+    .message.sent {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+    }
+
+    .message-content {
+      margin-bottom: 5px;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      text-align: right;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .send-btn {
+      padding: 15px 25px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .remember-me input {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-light);
     }
 
-    .remember-me label {
-      font-size: 0.95rem;
-      color: var(--gray);
-      cursor: pointer;
+    /* ================== TOUR SCHEDULING ================== */
+    .tour-container {
+      background: white;
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: var(--shadow);
     }
 
-    .forgot-password {
-      color: var(--primary);
-      text-decoration: none;
-      font-size: 0.95rem;
-      font-weight: 500;
+    .tour-requests {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .tour-request-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius);
+      padding: 20px;
       transition: var(--transition);
     }
 
-    .forgot-password:hover {
-      text-decoration: underline;
-      color: var(--primary-dark);
+    .tour-request-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow);
     }
 
-    /* Buttons */
-    .form-buttons {
-      margin-bottom: 25px;
+    .tour-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
     }
 
-    .btn {
+    .tour-property {
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .tour-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .status-approved {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .status-rejected {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .tour-details {
+      color: var(--gray);
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .tour-meta {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+
+    .tour-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tour-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ================== ANALYTICS SECTION ================== */
+    .analytics-container {
+      background: white;
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .analytics-card {
+      background: #f8fafc;
+      border-radius: var(--radius);
+      padding: 25px;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: var(--radius);
+      padding: 25px;
+      margin-top: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ================== MAP SECTION ================== */
+    .map-container {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      height: 600px;
+      position: relative;
+    }
+
+    #map {
       width: 100%;
+      height: 100%;
+      border-radius: var(--radius);
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .map-control-btn {
+      width: 45px;
+      height: 45px;
+      background: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--dark);
+      transition: var(--transition);
+    }
+
+    .map-control-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    /* ================== MODALS ================== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 0;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: var(--shadow-dark);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 25px 30px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .close-modal:hover {
+      color: var(--danger);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 30px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+
+    .wide-modal .modal-content {
+      max-width: 1080px;
+    }
+
+    /* ================== FORM STYLES ================== */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      background: white;
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .upload-panel {
+      border: 2px dashed #dbe4f0;
+      border-radius: var(--radius);
+      padding: 18px;
+      background: #f8fbff;
+    }
+
+    .upload-dropzone {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 56px;
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      background: white;
+      border: 1px solid #dbe4f0;
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .upload-dropzone:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-light);
+      transform: translateY(-2px);
+    }
+
+    .upload-input {
+      display: none;
+    }
+
+    .upload-help {
+      margin-top: 10px;
+      color: var(--gray);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .upload-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .upload-preview-empty {
+      grid-column: 1 / -1;
+      padding: 18px;
+      border-radius: var(--radius-sm);
+      background: white;
+      color: var(--gray);
+      text-align: center;
+      font-size: 0.9rem;
+      border: 1px dashed #dbe4f0;
+    }
+
+    .preview-card {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+      box-shadow: var(--shadow);
+      background: white;
+    }
+
+    .preview-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-label {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.72);
+      color: white;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.82);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .preview-remove:hover {
+      background: var(--danger);
+      transform: scale(1.08);
+    }
+
+    .avatar-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .avatar-preview {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+    }
+
+    .upload-progress {
+      display: none;
+      margin: 18px 0 10px;
       padding: 16px;
-      font-family: 'Inter', sans-serif;
+      border-radius: var(--radius-sm);
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+    }
+
+    .upload-progress.active {
+      display: block;
+    }
+
+    .upload-progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .upload-progress-track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .upload-progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.25s ease;
+    }
+
+    .upload-progress-note {
+      margin-top: 8px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .details-hero {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .details-main-image {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      min-height: 360px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: var(--shadow);
+    }
+
+    .details-main-image img {
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .details-main-placeholder {
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 4rem;
+    }
+
+    .details-summary {
+      display: grid;
+      gap: 16px;
+    }
+
+    .details-summary-card {
+      background: #f8fafc;
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .details-price {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .details-price span {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gray);
+    }
+
+    .details-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .details-meta-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .details-meta-card i {
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .details-section {
+      margin-top: 26px;
+    }
+
+    .details-section h3 {
+      margin-bottom: 14px;
+      font-family: 'Poppins', sans-serif;
+      color: var(--dark);
+    }
+
+    .details-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .details-gallery-thumb {
+      position: relative;
+      border: none;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: #e2e8f0;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      aspect-ratio: 4 / 3;
+    }
+
+    .details-gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .details-gallery-thumb span {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: white;
+      background: rgba(15, 23, 42, 0.74);
+    }
+
+    .details-description {
+      color: var(--gray);
+      line-height: 1.7;
+    }
+
+    .lightbox-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .lightbox-stage {
+      position: relative;
+      min-height: 420px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #020617;
+    }
+
+    .lightbox-stage img {
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.78);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .lightbox-nav.prev {
+      left: 14px;
+    }
+
+    .lightbox-nav.next {
+      right: 14px;
+    }
+
+    .lightbox-caption {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 23, 42, 0.78);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .lightbox-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 10px;
+    }
+
+    .lightbox-strip button {
+      border: 2px solid transparent;
+      border-radius: 14px;
+      overflow: hidden;
+      padding: 0;
+      background: #0f172a;
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+    }
+
+    .lightbox-strip button.active {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-light);
+    }
+
+    .lightbox-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: var(--radius-sm);
+      color: white;
       font-weight: 600;
       font-size: 1rem;
-      border-radius: var(--border-radius-sm);
-      border: none;
       cursor: pointer;
       transition: var(--transition);
       display: flex;
@@ -307,751 +1562,2708 @@
       gap: 10px;
     }
 
-    .btn-primary {
-      background: var(--primary);
-      color: white;
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-light);
     }
 
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-    }
-
-    .divider {
+    /* ================== EMPTY STATE ================== */
+    .empty-state {
       text-align: center;
-      margin: 25px 0;
+      padding: 80px 20px;
       color: var(--gray);
-      position: relative;
-      font-size: 0.9rem;
+      grid-column: 1 / -1;
     }
 
-    .divider::before, .divider::after {
-      content: '';
-      height: 1px;
-      background: var(--light-gray);
-      position: absolute;
-      top: 50%;
-      width: 45%;
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
     }
 
-    .divider::before {
-      left: 0;
-    }
-
-    .divider::after {
-      right: 0;
-    }
-
-    .google-btn {
-      background: white;
-      color: var(--dark);
-      border: 1px solid var(--light-gray);
-    }
-
-    .google-btn:hover {
-      background: #f8f9fa;
-      border-color: var(--primary);
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Sign Up Link */
-    .signup-link {
-      text-align: center;
-      margin-top: 25px;
-      padding-top: 20px;
-      border-top: 1px solid var(--light-gray);
-      color: var(--gray);
-      font-size: 0.95rem;
-    }
-
-    .signup-link a {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      margin-left: 5px;
-    }
-
-    .signup-link a:hover {
-      text-decoration: underline;
-    }
-
-    /* Modal Styling */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal.show {
-      display: flex;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 40px 30px;
-      border-radius: var(--border-radius);
-      max-width: 450px;
-      width: 100%;
-      position: relative;
-      box-shadow: var(--shadow-hover);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      transform: translateY(-20px);
-      transition: transform 0.3s ease;
-    }
-
-    .modal.show .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      text-align: center;
-    }
-
-    .modal-header h3 {
-      font-family: 'Poppins', sans-serif;
+    .empty-state h3 {
       font-size: 1.5rem;
       margin-bottom: 10px;
       color: var(--dark);
     }
 
-    .modal-header p {
-      color: var(--gray);
-      font-size: 0.95rem;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      cursor: pointer;
-      font-size: 1.5rem;
-      color: var(--gray);
-      width: 30px;
-      height: 30px;
+    /* ================== LOADING ================== */
+    .loading {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      transition: var(--transition);
-    }
-
-    .close-modal:hover {
-      background: var(--light-gray);
-    }
-
-    .form-select-wrapper {
-      position: relative;
-    }
-
-    .form-select-wrapper:after {
-      content: '\f078';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
+      padding: 60px;
       color: var(--gray);
-      pointer-events: none;
+      grid-column: 1 / -1;
     }
 
-    .form-select {
-      padding: 14px 15px;
-      border-radius: var(--border-radius-sm);
-      border: 1px solid var(--light-gray);
-      font-family: 'Inter', sans-serif;
-      font-size: 1rem;
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid #f1f5f9;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ================== BOTTOM NAV ================== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: var(--blur);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: space-around;
+      padding: 15px 0;
+      z-index: 999;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: var(--gray);
+      text-decoration: none;
       transition: var(--transition);
-      background: white;
-      appearance: none;
-      width: 100%;
+      position: relative;
       cursor: pointer;
     }
 
-    .form-select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    .nav-item-bottom:hover {
+      color: var(--primary);
+      transform: translateY(-2px);
     }
 
-    .phone-input {
-      position: relative;
+    .nav-item-bottom.active {
+      color: var(--primary);
     }
 
-    .phone-prefix {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--gray);
+    .nav-item-bottom i {
+      font-size: 1.4rem;
+    }
+
+    .nav-item-bottom span {
+      font-size: 0.8rem;
       font-weight: 500;
     }
 
-    .phone-input .form-input {
-      padding-left: 50px;
+    .nav-item-bottom.active::after {
+      content: '';
+      position: absolute;
+      top: -15px;
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 10px;
     }
 
-    /* Responsive */
-    @media (max-width: 900px) {
-      .login-box {
+    /* ================== RESPONSIVE ================== */
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 16px;
+      }
+      
+      .header-center {
+        display: none;
+      }
+      
+      .hero-title {
+        font-size: 2rem;
+      }
+      
+      .main-content {
+        padding: 90px 16px 90px;
+      }
+      
+      .listings-grid {
         grid-template-columns: 1fr;
       }
       
-      .login-welcome {
-        padding: 40px 30px;
+      .chat-container {
+        grid-template-columns: 1fr;
       }
       
-      .login-header h1 {
-        font-size: 2rem;
+      .sidebar {
+        width: 280px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .content-tabs {
+        flex-direction: column;
+      }
+      
+      .content-tab {
+        min-width: auto;
+      }
+      
+      .tour-requests {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 576px) {
-      .login-welcome, .login-form {
-        padding: 30px 20px;
-      }
-      
-      .login-header h1 {
+    @media (max-width: 480px) {
+      .hero-title {
         font-size: 1.8rem;
       }
       
-      .welcome-title {
-        font-size: 1.5rem;
-      }
-      
-      .form-header h2 {
-        font-size: 1.5rem;
-      }
-      
-      .form-options {
+      .listing-actions {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
       }
       
-      body {
-        padding: 10px;
+      .modal-body {
+        padding: 20px;
       }
-    }
+      
+      .modal-footer {
+        flex-direction: column;
+      }
+      
+      .chat-input {
+        flex-direction: column;
+      }
 
-    /* Animation */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(25px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+      .details-hero {
+        grid-template-columns: 1fr;
+      }
 
-    .fade-up {
-      animation: fadeUp 0.6s ease;
+      .lightbox-stage,
+      .lightbox-stage img,
+      .details-main-image img,
+      .details-main-placeholder {
+        min-height: 260px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-container fade-up">
-    <div class="login-header">
-      <h1>Welcome Back, Property Owner</h1>
-      <p>Access your dashboard to manage listings, bookings, and connect with students</p>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo" onclick="switchContent('dashboard')">
+      <div class="logo-icon">U</div>
+      <div class="logo-text">UniStay</div>
     </div>
-    
-    <div class="login-box">
-      <!-- Left Panel - Welcome -->
-      <div class="login-welcome">
-        <h2 class="welcome-title">Why Login to UniStay?</h2>
-        <ul class="welcome-features">
-          <li>
-            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-            <span>Track listing performance & analytics</span>
-          </li>
-          <li>
-            <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
-            <span>Manage bookings & view occupancy calendar</span>
-          </li>
-          <li>
-            <div class="feature-icon"><i class="fas fa-comments-dollar"></i></div>
-            <span>Process secure rent payments</span>
-          </li>
-          <li>
-            <div class="feature-icon"><i class="fas fa-star"></i></div>
-            <span>View student reviews & ratings</span>
-          </li>
-          <li>
-            <div class="feature-icon"><i class="fas fa-bell"></i></div>
-            <span>Get notified for new booking requests</span>
-          </li>
-        </ul>
-        
-        <div class="owner-quote">
-          <div class="quote-text">
-            "UniStay helped me achieve 100% occupancy for my 3 properties near UNILAG. The platform is a game-changer for landlords!"
+    <button class="close-modal" onclick="toggleSidebar()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar" id="sidebarAvatar">P</div>
+    <div class="sidebar-user-info">
+      <h3 id="sidebarUserName">Property Owner</h3>
+      <p id="sidebarUserEmail">owner@university.edu</p>
+    </div>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <a class="nav-item active" onclick="switchContent('dashboard')">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" onclick="switchContent('listings')">
+      <i class="fas fa-building"></i>
+      <span>My Listings</span>
+      <span class="badge" id="sidebarListingCount">0</span>
+    </a>
+    <a class="nav-item" onclick="switchContent('messages')">
+      <i class="fas fa-comments"></i>
+      <span>Messages</span>
+      <span class="badge" id="sidebarMessageCount">0</span>
+    </a>
+    <a class="nav-item" onclick="switchContent('tours')">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Tours & Visits</span>
+      <span class="badge" id="sidebarTourCount">0</span>
+    </a>
+    <a class="nav-item" onclick="switchContent('analytics')">
+      <i class="fas fa-chart-bar"></i>
+      <span>Analytics</span>
+    </a>
+    <a class="nav-item" onclick="showSettings()">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </a>
+  </nav>
+  
+  <div class="sidebar-footer">
+    <a class="nav-item" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Header -->
+<header class="header" id="header">
+  <div class="header-left">
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <a class="logo" onclick="switchContent('dashboard')">
+      <div class="logo-icon">U</div>
+      <div class="logo-text">UniStay</div>
+    </a>
+  </div>
+  
+  <div class="header-center">
+    <div class="search-input-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" 
+             class="search-input" 
+             id="searchInput" 
+             placeholder="Search listings, messages, or students..."
+             oninput="handleSearch()">
+      <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <button class="notification-btn" id="notificationBtn" onclick="showNotificationsModal()">
+      <i class="far fa-bell"></i>
+      <span class="notification-badge" id="notificationBadge">0</span>
+    </button>
+    <div class="user-profile">
+      <div class="avatar" id="avatar" onclick="toggleUserMenu()">P</div>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Dashboard Content -->
+  <section class="content-section active" id="dashboardSection">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <h1 class="hero-title" id="greeting">Manage Your Properties</h1>
+      <p class="hero-subtitle">Connect with students, schedule tours, and manage your listings</p>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="stats-grid">
+      <div class="stat-card" onclick="switchContent('listings')">
+        <div class="stat-icon">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-value" id="totalProperties">0</div>
+        <div class="stat-label">Total Properties</div>
+      </div>
+      
+      <div class="stat-card" onclick="filterListings('approved')">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value" id="approvedProperties">0</div>
+        <div class="stat-label">Approved Listings</div>
+      </div>
+      
+      <div class="stat-card" onclick="switchContent('messages')">
+        <div class="stat-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <div class="stat-value" id="unreadMessages">0</div>
+        <div class="stat-label">Unread Messages</div>
+      </div>
+      
+      <div class="stat-card" onclick="switchContent('tours')">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="stat-value" id="pendingTours">0</div>
+        <div class="stat-label">Pending Tours</div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <div class="content-tabs">
+      <button class="content-tab" onclick="showCreateListingModal()">
+        <i class="fas fa-plus"></i>
+        Add New Listing
+      </button>
+      <button class="content-tab" onclick="switchContent('messages')">
+        <i class="fas fa-envelope"></i>
+        View Messages
+      </button>
+      <button class="content-tab" onclick="switchContent('tours')">
+        <i class="fas fa-clock"></i>
+        Check Tours
+      </button>
+      <button class="content-tab" onclick="refreshDashboard()">
+        <i class="fas fa-sync"></i>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="listings-section">
+      <div class="section-header">
+        <h2><i class="fas fa-history"></i> Recent Activity</h2>
+      </div>
+      <div id="recentActivity">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading recent activity...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Listings Content -->
+  <section class="content-section" id="listingsSection">
+    <div class="content-tabs">
+      <button class="content-tab active" onclick="filterListings('all')">
+        <i class="fas fa-list"></i>
+        All Listings
+      </button>
+      <button class="content-tab" onclick="filterListings('approved')">
+        <i class="fas fa-check-circle"></i>
+        Approved
+      </button>
+      <button class="content-tab" onclick="filterListings('pending')">
+        <i class="fas fa-clock"></i>
+        Pending
+      </button>
+      <button class="content-tab" onclick="filterListings('rejected')">
+        <i class="fas fa-times"></i>
+        Rejected
+      </button>
+    </div>
+
+    <div class="listings-section">
+      <div class="section-header">
+        <h2><i class="fas fa-building"></i> My Properties</h2>
+        <button class="action-btn primary" onclick="showCreateListingModal()">
+          <i class="fas fa-plus"></i>
+          Add New Listing
+        </button>
+      </div>
+      
+      <div class="listings-grid" id="listingsGrid">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading your properties...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Messages Content -->
+  <section class="content-section" id="messagesSection">
+    <div class="messages-container">
+      <div class="messages-header">
+        <h2><i class="fas fa-comments"></i> Messages</h2>
+        <button class="action-btn secondary" onclick="refreshMessages()">
+          <i class="fas fa-sync"></i>
+          Refresh
+        </button>
+      </div>
+
+      <div class="chat-container">
+        <div class="conversations-sidebar" id="conversationsSidebar">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading conversations...</p>
           </div>
-          <div class="quote-author">— Mr. Adebayo, Property Owner since 2022</div>
+        </div>
+
+        <div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <h3>No Conversation Selected</h3>
+              <p>Select a conversation from the sidebar to start messaging</p>
+            </div>
+          </div>
+          
+          <div class="chat-input" id="chatInput" style="display: none;">
+            <input type="text" id="messageInput" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage()">
+              <i class="fas fa-paper-plane"></i>
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tours Content -->
+  <section class="content-section" id="toursSection">
+    <div class="tour-container">
+      <div class="messages-header">
+        <h2><i class="fas fa-calendar-alt"></i> Tour Requests</h2>
+        <div class="filters">
+          <button class="filter-btn active" onclick="filterTours('all')">All</button>
+          <button class="filter-btn" onclick="filterTours('pending')">Pending</button>
+          <button class="filter-btn" onclick="filterTours('approved')">Approved</button>
+          <button class="filter-btn" onclick="filterTours('rejected')">Rejected</button>
+        </div>
+      </div>
+
+      <div class="tour-requests" id="tourRequests">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading tour requests...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analytics Content -->
+  <section class="content-section" id="analyticsSection">
+    <div class="analytics-container">
+      <h2><i class="fas fa-chart-bar"></i> Analytics</h2>
+      
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h3>Total Views</h3>
+          <div class="stat-value" id="totalViews">0</div>
+          <p>Property views this month</p>
+        </div>
+        
+        <div class="analytics-card">
+          <h3>Inquiry Rate</h3>
+          <div class="stat-value" id="inquiryRate">0%</div>
+          <p>View to inquiry conversion</p>
+        </div>
+        
+        <div class="analytics-card">
+          <h3>Response Time</h3>
+          <div class="stat-value" id="responseTime">0h</div>
+          <p>Average response time</p>
+        </div>
+        
+        <div class="analytics-card">
+          <h3>Occupancy</h3>
+          <div class="stat-value" id="occupancyRate">0%</div>
+          <p>Current occupancy rate</p>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h3>Monthly Performance</h3>
+        <canvas id="performanceChart" height="300"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map Content -->
+  <section class="content-section" id="mapSection">
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="map-controls">
+        <button class="map-control-btn" onclick="locateUser()" title="My Location">
+          <i class="fas fa-location-arrow"></i>
+        </button>
+        <button class="map-control-btn" onclick="showAllPropertiesOnMap()" title="Show All Properties">
+          <i class="fas fa-layer-group"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modals -->
+<div class="modal" id="createListingModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Create New Listing</h2>
+      <button class="close-modal" onclick="closeModal('createListingModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="listingForm">
+        <div class="form-group">
+          <label class="form-label">Property Title *</label>
+          <input type="text" class="form-input" id="propertyTitle" required placeholder="e.g., 3-Bedroom Apartment near Campus">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea class="form-textarea" id="propertyDescription" required placeholder="Describe your property, amenities, rules, etc."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" class="form-input" id="propertyLocation" required placeholder="e.g., Garki, Abuja">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Monthly Rent (₦) *</label>
+          <input type="number" class="form-input" id="propertyPrice" required min="0" placeholder="50000">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Distance from Campus (km) *</label>
+          <input type="number" class="form-input" id="propertyDistance" required min="0" step="0.1" placeholder="2.5">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Bedrooms *</label>
+          <select class="form-select" id="propertyBedrooms" required>
+            <option value="">Select bedrooms</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+            <option value="5+">5+ Bedrooms</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Bathrooms *</label>
+          <select class="form-select" id="propertyBathrooms" required>
+            <option value="">Select bathrooms</option>
+            <option value="1">1 Bathroom</option>
+            <option value="2">2 Bathrooms</option>
+            <option value="3">3 Bathrooms</option>
+            <option value="4">4 Bathrooms</option>
+            <option value="5+">5+ Bathrooms</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Furnishing Status *</label>
+          <select class="form-select" id="propertyFurnishing" required>
+            <option value="">Select furnishing</option>
+            <option value="Fully Furnished">Fully Furnished</option>
+            <option value="Semi-Furnished">Semi-Furnished</option>
+            <option value="Non-Furnished">Non-Furnished</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Property Photos</label>
+          <div class="upload-panel">
+            <label class="upload-dropzone" for="propertyImages">
+              <i class="fas fa-image"></i>
+              <span>Choose property photos</span>
+            </label>
+            <input type="file" class="upload-input" id="propertyImages" accept="image/*" multiple onchange="handleListingFileSelection('property', this)">
+            <p class="upload-help">Upload clear photos of the rooms, exterior, and general property view. You can add up to 8 images.</p>
+            <div class="upload-preview-grid" id="propertyImagesPreview"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Facilities Photos</label>
+          <div class="upload-panel">
+            <label class="upload-dropzone" for="facilityImages">
+              <i class="fas fa-camera-retro"></i>
+              <span>Choose facility photos</span>
+            </label>
+            <input type="file" class="upload-input" id="facilityImages" accept="image/*" multiple onchange="handleListingFileSelection('facility', this)">
+            <p class="upload-help">Add photos for bathrooms, kitchens, parking, water supply, security points, or any other facility. You can add up to 8 images.</p>
+            <div class="upload-preview-grid" id="facilityImagesPreview"></div>
+          </div>
+        </div>
+
+        <div class="upload-progress" id="listingUploadProgress">
+          <div class="upload-progress-head">
+            <span id="listingUploadLabel">Preparing upload...</span>
+            <span id="listingUploadPercent">0%</span>
+          </div>
+          <div class="upload-progress-track">
+            <div class="upload-progress-fill" id="listingUploadFill"></div>
+          </div>
+          <div class="upload-progress-note" id="listingUploadNote">Your property images will appear here as the upload progresses.</div>
+        </div>
+        
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-paper-plane"></i>
+          Submit for Approval
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="close-modal" onclick="closeModal('settingsModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="settingsContent">
+      <!-- Settings content will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Tour Details Modal -->
+<div class="modal" id="tourDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Tour Details</h2>
+      <button class="close-modal" onclick="closeModal('tourDetailsModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="tourDetailsContent">
+      <!-- Tour details will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Notification Modal -->
+<div class="modal" id="notificationModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Notifications</h2>
+      <button class="close-modal" onclick="closeModal('notificationModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="notificationContent">
+      <!-- Notifications will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<div class="modal wide-modal" id="listingDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="listingDetailsTitle">Listing Details</h2>
+      <button class="close-modal" onclick="closeModal('listingDetailsModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="listingDetailsContent"></div>
+  </div>
+</div>
+
+<div class="modal wide-modal" id="galleryLightboxModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="galleryLightboxTitle">Photo Gallery</h2>
+      <button class="close-modal" onclick="closeModal('galleryLightboxModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="galleryLightboxContent"></div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <div class="nav-item-bottom active" onclick="switchContent('dashboard')">
+    <i class="fas fa-home"></i>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item-bottom" onclick="switchContent('listings')">
+    <i class="fas fa-building"></i>
+    <span>Listings</span>
+  </div>
+  <div class="nav-item-bottom" onclick="switchContent('messages')">
+    <i class="fas fa-comments"></i>
+    <span>Messages</span>
+  </div>
+  <div class="nav-item-bottom" onclick="switchContent('tours')">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Tours</span>
+  </div>
+  <div class="nav-item-bottom" onclick="toggleSidebar()">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </div>
+</nav>
+
+<!-- Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// ================== FIREBASE INITIALIZATION ==================
+const firebaseConfig = {
+  apiKey: "AIzaSyBWOFJN21yu4u4miNU3e64CvQkNCGZX_qU",
+  authDomain: "unistay-5e6b4.firebaseapp.com",
+  databaseURL: "https://unistay-5e6b4-default-rtdb.firebaseio.com",
+  projectId: "unistay-5e6b4",
+  storageBucket: "unistay-5e6b4.appspot.com",
+  messagingSenderId: "551189171944",
+  appId: "1:551189171944:web:81f5f686f7d31a0a3a035d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+// ================== GLOBAL VARIABLES ==================
+let map;
+let markers = L.markerClusterGroup();
+let userLocation = null;
+let currentUser = null;
+let ownerData = {};
+let listings = [];
+let messages = [];
+let conversations = [];
+let tours = [];
+let notifications = [];
+let currentConversationId = null;
+let currentTourFilter = 'all';
+let currentListingFilter = 'all';
+let performanceChart = null;
+let listingMediaState = {
+  property: [],
+  facility: []
+};
+let profileImageState = null;
+let galleryLightboxState = {
+  images: [],
+  activeIndex: 0,
+  title: 'Photo Gallery'
+};
+
+// Nigerian Universities for search
+const universities = [
+  { name: "University of Lagos", city: "Lagos" },
+  { name: "University of Ibadan", city: "Ibadan" },
+  { name: "University of Nigeria, Nsukka", city: "Nsukka" },
+  { name: "Obafemi Awolowo University", city: "Ile-Ife" },
+  { name: "University of Benin", city: "Benin" },
+  { name: "Ahmadu Bello University", city: "Zaria" },
+  { name: "University of Port Harcourt", city: "Port Harcourt" },
+  { name: "University of Abuja", city: "Abuja" },
+  { name: "Covenant University", city: "Ota" },
+  { name: "Lagos State University", city: "Lagos" }
+];
+
+// ================== INITIALIZATION ==================
+document.addEventListener('DOMContentLoaded', () => {
+  initGreeting();
+  initMap();
+  initAuth();
+  initEventListeners();
+  
+  // Header scroll effect
+  window.addEventListener('scroll', () => {
+    const header = document.getElementById('header');
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+});
+
+// ================== AUTHENTICATION ==================
+function initAuth() {
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'owner-login.html';
+      return;
+    }
+    currentUser = user;
+    loadOwnerData();
+    loadListings();
+    loadMessages();
+    loadTours();
+    loadNotifications();
+  });
+}
+
+function loadOwnerData() {
+  db.ref('propertyOwners/' + currentUser.uid).on('value', snapshot => {
+    if (snapshot.exists()) {
+      ownerData = snapshot.val();
+      updateUserDisplay();
+      
+      // Check if account is restricted
+      if (ownerData.banned || ownerData.restricted) {
+        showAlert('Account Restricted', 'Your account has been restricted. Please contact support.', 'danger');
+      }
+    }
+  });
+}
+
+function updateUserDisplay() {
+  const name = ownerData.fullName || 'Property Owner';
+  const email = ownerData.email || 'owner@university.edu';
+  const initial = name.charAt(0).toUpperCase();
+  const profileImageUrl = ownerData.profileImageUrl || '';
+
+  setAvatarDisplay(document.getElementById('sidebarAvatar'), initial, profileImageUrl);
+  setAvatarDisplay(document.getElementById('avatar'), initial, profileImageUrl);
+  document.getElementById('sidebarUserName').textContent = name;
+  document.getElementById('sidebarUserEmail').textContent = email;
+}
+
+function setAvatarDisplay(element, fallbackText, imageUrl) {
+  if (!element) return;
+
+  element.textContent = imageUrl ? '' : fallbackText;
+  element.classList.toggle('has-image', !!imageUrl);
+  element.style.backgroundImage = imageUrl ? `url("${imageUrl}")` : '';
+}
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    auth.signOut().then(() => {
+      window.location.href = 'index.html';
+    });
+  }
+}
+
+// ================== GREETING ==================
+function initGreeting() {
+  const hour = new Date().getHours();
+  let greeting = 'Manage Your Properties';
+  
+  if (hour < 12) {
+    document.getElementById('greeting').textContent = 'Good Morning! ' + greeting;
+  } else if (hour < 18) {
+    document.getElementById('greeting').textContent = 'Good Afternoon! ' + greeting;
+  } else {
+    document.getElementById('greeting').textContent = 'Good Evening! ' + greeting;
+  }
+}
+
+// ================== SIDEBAR ==================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+}
+
+function toggleUserMenu() {
+  toggleSidebar();
+}
+
+// ================== MAP INITIALIZATION ==================
+function initMap() {
+  // Initialize map centered on Nigeria
+  map = L.map('map').setView([9.0820, 8.6753], 6);
+  
+  // Add tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+  
+  // Add marker cluster group
+  map.addLayer(markers);
+  
+  // Try to get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        userLocation = [position.coords.latitude, position.coords.longitude];
+      },
+      error => {
+        console.log('Geolocation error:', error);
+      }
+    );
+  }
+}
+
+function locateUser() {
+  if (userLocation) {
+    map.setView(userLocation, 14);
+    L.marker(userLocation)
+      .addTo(map)
+      .bindPopup('Your Location')
+      .openPopup();
+  } else {
+    alert('Location access is required. Please enable location services.');
+  }
+}
+
+function showAllPropertiesOnMap() {
+  if (listings.length === 0) return;
+  
+  const bounds = L.latLngBounds(listings.map(p => [p.lat || 9.0820, p.lng || 8.6753]));
+  map.fitBounds(bounds);
+}
+
+// ================== LISTINGS MANAGEMENT ==================
+function loadListings() {
+  db.ref('properties').orderByChild('ownerId').equalTo(currentUser.uid)
+    .on('value', snapshot => {
+      listings = [];
+      let total = 0, approved = 0, pending = 0, rejected = 0;
+      
+      snapshot.forEach(child => {
+        const listing = child.val();
+        listing.id = child.key;
+        listings.push(listing);
+        
+        total++;
+        switch (listing.status) {
+          case 'approved': approved++; break;
+          case 'pending': pending++; break;
+          case 'rejected': rejected++; break;
+        }
+      });
+      
+      // Update stats
+      document.getElementById('totalProperties').textContent = total;
+      document.getElementById('approvedProperties').textContent = approved;
+      document.getElementById('sidebarListingCount').textContent = total;
+      
+      // Render listings
+      renderListings();
+    });
+}
+
+function renderListings() {
+  const grid = document.getElementById('listingsGrid');
+  
+  if (listings.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-home"></i>
+        <h3>No Listings Yet</h3>
+        <p>Create your first accommodation listing to get started!</p>
+        <button class="action-btn primary" onclick="showCreateListingModal()" style="margin-top: 20px;">
+          <i class="fas fa-plus"></i>
+          Create Listing
+        </button>
+      </div>
+    `;
+    return;
+  }
+  
+  // Filter listings
+  const filteredListings = currentListingFilter === 'all' 
+    ? listings 
+    : listings.filter(l => l.status === currentListingFilter);
+  
+  if (filteredListings.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-filter"></i>
+        <h3>No ${currentListingFilter} listings</h3>
+        <p>You don't have any ${currentListingFilter} listings.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Sort by date (newest first)
+  filteredListings.sort((a, b) => b.createdAt - a.createdAt);
+  
+  grid.innerHTML = filteredListings.map(listing => `
+    <div class="listing-card" onclick="viewListingDetails('${listing.id}')">
+      <div class="listing-image">
+        ${getListingCoverImage(listing)
+          ? `<img src="${getListingCoverImage(listing)}" alt="Property image" class="listing-cover-image">`
+          : `<div class="image-placeholder">
+              <i class="fas fa-home"></i>
+            </div>`}
+        <div class="listing-badge ${listing.status || 'pending'}">
+          <i class="fas fa-${listing.status === 'approved' ? 'check-circle' : listing.status === 'rejected' ? 'times' : 'clock'}"></i>
+          ${listing.status || 'pending'}
+        </div>
+      </div>
+      <div class="listing-content">
+        <div class="listing-header">
+          <div>
+            <h3 class="listing-title">${listing.title || 'Untitled'}</h3>
+            <div class="listing-location">
+              <i class="fas fa-map-marker-alt"></i>
+              ${listing.location || 'Location not specified'}
+            </div>
+          </div>
+          <div class="listing-price">
+            ₦${formatNumber(listing.price || 0)}
+            <span>/month</span>
+          </div>
+        </div>
+        
+        <div class="listing-meta">
+          <div class="meta-item">
+            <i class="fas fa-bed"></i>
+            ${listing.bedrooms || 'N/A'} beds
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-bath"></i>
+            ${listing.bathrooms || 'N/A'} baths
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-road"></i>
+            ${listing.distance || 'N/A'} km
+          </div>
+        </div>
+        
+        <p class="listing-description">
+          ${(listing.description || '').substring(0, 100)}...
+        </p>
+        
+        <div class="listing-actions">
+          <button class="action-btn secondary" onclick="event.stopPropagation(); editListing('${listing.id}')">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="action-btn primary" onclick="event.stopPropagation(); viewListingMessages('${listing.id}')">
+            <i class="fas fa-envelope"></i>
+            Messages
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getListingCoverImage(listing) {
+  return listing.coverImage || listing.propertyImages?.[0] || listing.facilityImages?.[0] || '';
+}
+
+function getListingGalleryImages(listing) {
+  const seen = new Set();
+  const groups = [
+    { key: 'propertyImages', label: 'Property' },
+    { key: 'facilityImages', label: 'Facility' }
+  ];
+
+  return groups.flatMap(group => (listing[group.key] || []).reduce((items, url) => {
+    if (!url || seen.has(url)) return items;
+    seen.add(url);
+    items.push({ url, label: group.label });
+    return items;
+  }, []));
+}
+
+function viewListingDetails(listingId) {
+  const listing = listings.find(item => item.id === listingId);
+  if (!listing) {
+    showAlert('Not Found', 'We could not load that listing right now.', 'warning');
+    return;
+  }
+
+  const galleryImages = getListingGalleryImages(listing);
+  const content = document.getElementById('listingDetailsContent');
+  document.getElementById('listingDetailsTitle').textContent = listing.title || 'Listing Details';
+
+  content.innerHTML = `
+    <div class="details-hero">
+      <div class="details-main-image">
+        ${getListingCoverImage(listing)
+          ? `<img src="${getListingCoverImage(listing)}" alt="${listing.title || 'Property image'}">`
+          : `<div class="details-main-placeholder"><i class="fas fa-home"></i></div>`}
+      </div>
+      <div class="details-summary">
+        <div class="details-summary-card">
+          <div class="details-price">â‚¦${formatNumber(listing.price || 0)} <span>/month</span></div>
+          <p style="margin-top: 12px; color: var(--gray); line-height: 1.6;">
+            <i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 8px;"></i>
+            ${listing.location || 'Location not specified'}
+          </p>
+          <div class="details-meta-grid">
+            <div class="details-meta-card">
+              <i class="fas fa-bed"></i>
+              <strong>${listing.bedrooms || 'N/A'}</strong>
+              <div style="color: var(--gray); font-size: 0.9rem;">Bedrooms</div>
+            </div>
+            <div class="details-meta-card">
+              <i class="fas fa-bath"></i>
+              <strong>${listing.bathrooms || 'N/A'}</strong>
+              <div style="color: var(--gray); font-size: 0.9rem;">Bathrooms</div>
+            </div>
+            <div class="details-meta-card">
+              <i class="fas fa-road"></i>
+              <strong>${listing.distance || 'N/A'} km</strong>
+              <div style="color: var(--gray); font-size: 0.9rem;">To Campus</div>
+            </div>
+            <div class="details-meta-card">
+              <i class="fas fa-couch"></i>
+              <strong>${listing.furnishing || 'N/A'}</strong>
+              <div style="color: var(--gray); font-size: 0.9rem;">Furnishing</div>
+            </div>
+          </div>
+        </div>
+        <div class="details-summary-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <strong style="color: var(--dark);">Gallery</strong>
+            <button class="action-btn primary" type="button" onclick="openGalleryLightbox('${listing.id}', 0)" ${galleryImages.length ? '' : 'disabled'}>
+              <i class="fas fa-expand"></i>
+              Open Gallery
+            </button>
+          </div>
+          <p style="margin-top: 12px; color: var(--gray); line-height: 1.6;">
+            ${galleryImages.length ? `${galleryImages.length} uploaded image${galleryImages.length === 1 ? '' : 's'} available for this property.` : 'No images uploaded for this listing yet.'}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <h3>Description</h3>
+      <p class="details-description">${listing.description || 'No description provided.'}</p>
+    </div>
+
+    <div class="details-section">
+      <h3>Uploaded Images</h3>
+      ${galleryImages.length ? `
+        <div class="details-gallery-grid">
+          ${galleryImages.map((image, index) => `
+            <button type="button" class="details-gallery-thumb" onclick="openGalleryLightbox('${listing.id}', ${index})">
+              <img src="${image.url}" alt="${image.label} image ${index + 1}">
+              <span>${image.label}</span>
+            </button>
+          `).join('')}
+        </div>
+      ` : `
+        <div class="upload-preview-empty">No property or facility photos have been uploaded yet.</div>
+      `}
+    </div>
+  `;
+
+  openModal('listingDetailsModal');
+}
+
+function openGalleryLightbox(listingId, startIndex = 0) {
+  const listing = listings.find(item => item.id === listingId);
+  if (!listing) return;
+
+  const images = getListingGalleryImages(listing);
+  if (!images.length) {
+    showAlert('No Images', 'This listing does not have any uploaded images yet.', 'info');
+    return;
+  }
+
+  galleryLightboxState = {
+    images,
+    activeIndex: Math.min(Math.max(startIndex, 0), images.length - 1),
+    title: listing.title || 'Photo Gallery'
+  };
+
+  document.getElementById('galleryLightboxTitle').textContent = galleryLightboxState.title;
+  renderGalleryLightbox();
+  openModal('galleryLightboxModal');
+}
+
+function renderGalleryLightbox() {
+  const content = document.getElementById('galleryLightboxContent');
+  const { images, activeIndex } = galleryLightboxState;
+  const activeImage = images[activeIndex];
+  if (!content || !activeImage) return;
+
+  content.innerHTML = `
+    <div class="lightbox-shell">
+      <div class="lightbox-stage">
+        <img src="${activeImage.url}" alt="${activeImage.label} image ${activeIndex + 1}">
+        ${images.length > 1 ? `
+          <button type="button" class="lightbox-nav prev" onclick="stepGalleryLightbox(-1)" aria-label="Previous image">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button type="button" class="lightbox-nav next" onclick="stepGalleryLightbox(1)" aria-label="Next image">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        ` : ''}
+        <div class="lightbox-caption">
+          <span>${activeImage.label} image</span>
+          <span>${activeIndex + 1} / ${images.length}</span>
+        </div>
+      </div>
+      <div class="lightbox-strip">
+        ${images.map((image, index) => `
+          <button type="button" class="${index === activeIndex ? 'active' : ''}" onclick="setGalleryLightboxIndex(${index})" aria-label="Show image ${index + 1}">
+            <img src="${image.url}" alt="${image.label} thumbnail ${index + 1}">
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function setGalleryLightboxIndex(index) {
+  if (!galleryLightboxState.images.length) return;
+  galleryLightboxState.activeIndex = index;
+  renderGalleryLightbox();
+}
+
+function stepGalleryLightbox(direction) {
+  const total = galleryLightboxState.images.length;
+  if (!total) return;
+  galleryLightboxState.activeIndex = (galleryLightboxState.activeIndex + direction + total) % total;
+  renderGalleryLightbox();
+}
+
+function filterListings(status) {
+  currentListingFilter = status;
+  switchContent('listings');
+  renderListings();
+}
+
+function showCreateListingModal() {
+  resetListingForm();
+  openModal('createListingModal');
+}
+
+function editListing(listingId) {
+  const listing = listings.find(l => l.id === listingId);
+  if (!listing) return;
+  
+  if (listing.status === 'approved') {
+    showAlert('Cannot Edit', 'Approved listings cannot be edited. Please contact support for changes.', 'warning');
+    return;
+  }
+  
+  // Populate and open edit form
+  document.getElementById('propertyTitle').value = listing.title || '';
+  document.getElementById('propertyDescription').value = listing.description || '';
+  document.getElementById('propertyLocation').value = listing.location || '';
+  document.getElementById('propertyPrice').value = listing.price || '';
+  document.getElementById('propertyDistance').value = listing.distance || '';
+  document.getElementById('propertyBedrooms').value = listing.bedrooms || '';
+  document.getElementById('propertyBathrooms').value = listing.bathrooms || '';
+  document.getElementById('propertyFurnishing').value = listing.furnishing || '';
+  loadListingMediaState(listing);
+  
+  // Update form to edit mode
+  const form = document.getElementById('listingForm');
+  form.dataset.editId = listingId;
+  form.dataset.mode = 'edit';
+  
+  const submitBtn = form.querySelector('.submit-btn');
+  submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Listing';
+  
+  openModal('createListingModal');
+}
+
+function getPreviewContainerId(mediaType) {
+  return mediaType === 'property' ? 'propertyImagesPreview' : 'facilityImagesPreview';
+}
+
+function releaseMediaItems(items) {
+  items.forEach(item => {
+    if (item?.kind === 'file' && item.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(item.url);
+    }
+  });
+}
+
+function clearListingMediaState() {
+  releaseMediaItems(listingMediaState.property);
+  releaseMediaItems(listingMediaState.facility);
+
+  listingMediaState = {
+    property: [],
+    facility: []
+  };
+
+  const propertyInput = document.getElementById('propertyImages');
+  const facilityInput = document.getElementById('facilityImages');
+  if (propertyInput) propertyInput.value = '';
+  if (facilityInput) facilityInput.value = '';
+
+  renderListingMediaPreview('property');
+  renderListingMediaPreview('facility');
+}
+
+function loadListingMediaState(listing = {}) {
+  clearListingMediaState();
+  listingMediaState.property = (listing.propertyImages || []).map(url => ({ kind: 'existing', url }));
+  listingMediaState.facility = (listing.facilityImages || []).map(url => ({ kind: 'existing', url }));
+  renderListingMediaPreview('property');
+  renderListingMediaPreview('facility');
+}
+
+function renderListingMediaPreview(mediaType) {
+  const container = document.getElementById(getPreviewContainerId(mediaType));
+  if (!container) return;
+
+  const items = listingMediaState[mediaType];
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="upload-preview-empty">
+        No ${mediaType === 'property' ? 'property' : 'facility'} photos selected yet.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map((item, index) => `
+    <div class="preview-card">
+      <img src="${item.url}" alt="${mediaType} preview">
+      <button type="button" class="preview-remove" onclick="removeListingMediaItem('${mediaType}', ${index})" aria-label="Remove image">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="preview-label">${item.kind === 'file' ? item.file.name : 'Saved image'}</div>
+    </div>
+  `).join('');
+}
+
+function handleListingFileSelection(mediaType, input) {
+  const files = Array.from(input.files || []);
+  const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+  if (!imageFiles.length) {
+    if (files.length) {
+      showAlert('Invalid File', 'Please choose image files only.', 'warning');
+    }
+    input.value = '';
+    return;
+  }
+
+  if (imageFiles.length !== files.length) {
+    showAlert('Some Files Skipped', 'Only image files were added to the upload list.', 'warning');
+  }
+
+  const maxImages = 8;
+  const availableSlots = maxImages - listingMediaState[mediaType].length;
+  if (availableSlots <= 0) {
+    showAlert('Upload Limit Reached', `You can add up to ${maxImages} ${mediaType} images.`, 'warning');
+    input.value = '';
+    return;
+  }
+
+  const acceptedFiles = imageFiles.slice(0, availableSlots).map(file => ({
+    kind: 'file',
+    file,
+    url: URL.createObjectURL(file)
+  }));
+
+  if (acceptedFiles.length < imageFiles.length) {
+    showAlert('Upload Limit Reached', `Only ${acceptedFiles.length} more ${mediaType} images were added.`, 'warning');
+  }
+
+  listingMediaState[mediaType] = listingMediaState[mediaType].concat(acceptedFiles);
+  renderListingMediaPreview(mediaType);
+  input.value = '';
+}
+
+function removeListingMediaItem(mediaType, index) {
+  const item = listingMediaState[mediaType][index];
+  if (!item) return;
+
+  releaseMediaItems([item]);
+  listingMediaState[mediaType].splice(index, 1);
+  renderListingMediaPreview(mediaType);
+}
+
+function resetListingForm() {
+  const form = document.getElementById('listingForm');
+  form.reset();
+  delete form.dataset.mode;
+  delete form.dataset.editId;
+
+  clearListingMediaState();
+  resetUploadProgress('listing');
+
+  const submitBtn = form.querySelector('.submit-btn');
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Approval';
+}
+
+function makeStorageSafeName(fileName) {
+  return fileName.toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
+}
+
+function setUploadProgress(scope, percent, label, note = '') {
+  const container = document.getElementById(`${scope}UploadProgress`);
+  const fill = document.getElementById(`${scope}UploadFill`);
+  const percentText = document.getElementById(`${scope}UploadPercent`);
+  const labelText = document.getElementById(`${scope}UploadLabel`);
+  const noteText = document.getElementById(`${scope}UploadNote`);
+
+  if (!container || !fill || !percentText || !labelText || !noteText) return;
+
+  container.classList.add('active');
+  fill.style.width = `${Math.max(0, Math.min(percent, 100))}%`;
+  percentText.textContent = `${Math.round(percent)}%`;
+  labelText.textContent = label;
+  noteText.textContent = note || label;
+}
+
+function resetUploadProgress(scope) {
+  const container = document.getElementById(`${scope}UploadProgress`);
+  const fill = document.getElementById(`${scope}UploadFill`);
+  const percentText = document.getElementById(`${scope}UploadPercent`);
+  const labelText = document.getElementById(`${scope}UploadLabel`);
+  const noteText = document.getElementById(`${scope}UploadNote`);
+
+  if (!container || !fill || !percentText || !labelText || !noteText) return;
+
+  container.classList.remove('active');
+  fill.style.width = '0%';
+  percentText.textContent = '0%';
+  labelText.textContent = 'Preparing upload...';
+  noteText.textContent = 'Your property images will appear here as the upload progresses.';
+}
+
+async function uploadImageFile(file, storagePath, onProgress) {
+  return new Promise((resolve, reject) => {
+    const uploadTask = storage.ref().child(storagePath).put(file);
+
+    uploadTask.on('state_changed',
+      snapshot => {
+        if (onProgress && snapshot.totalBytes) {
+          onProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        }
+      },
+      reject,
+      async () => {
+        try {
+          const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+          resolve(downloadUrl);
+        } catch (error) {
+          reject(error);
+        }
+      }
+    );
+  });
+}
+
+async function resolveMediaUrls(items, baseFolder, progressScope, labelPrefix) {
+  const resolvedUrls = [];
+  const uploads = items.filter(item => item.kind === 'file');
+  const totalUploads = uploads.length;
+  let completedUploads = 0;
+
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    if (item.kind === 'existing') {
+      resolvedUrls.push(item.url);
+      continue;
+    }
+
+    const fileNumber = completedUploads + 1;
+    const storagePath = `${baseFolder}/${Date.now()}-${index}-${makeStorageSafeName(item.file.name)}`;
+    const downloadUrl = await uploadImageFile(item.file, storagePath, fileProgress => {
+      const overallPercent = totalUploads
+        ? ((completedUploads + (fileProgress / 100)) / totalUploads) * 100
+        : 100;
+      setUploadProgress(
+        progressScope,
+        overallPercent,
+        `${labelPrefix} ${fileNumber} of ${totalUploads}`,
+        `Uploading ${item.file.name}`
+      );
+    });
+
+    completedUploads++;
+    resolvedUrls.push(downloadUrl);
+  }
+
+  return resolvedUrls;
+}
+
+function setProfileImageState(item) {
+  if (profileImageState?.kind === 'file' && profileImageState.url?.startsWith('blob:')) {
+    URL.revokeObjectURL(profileImageState.url);
+  }
+
+  profileImageState = item;
+  renderProfileImagePreview();
+}
+
+function renderProfileImagePreview() {
+  const preview = document.getElementById('settingsProfilePreview');
+  if (!preview) return;
+
+  const name = ownerData.fullName || 'Property Owner';
+  const initial = name.charAt(0).toUpperCase();
+  const imageUrl = profileImageState?.url || '';
+
+  preview.textContent = imageUrl ? '' : initial;
+  preview.style.backgroundImage = imageUrl ? `url("${imageUrl}")` : '';
+}
+
+function handleProfileImageSelection(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAlert('Invalid File', 'Please choose an image file for your profile picture.', 'warning');
+    input.value = '';
+    return;
+  }
+
+  setProfileImageState({
+    kind: 'file',
+    file,
+    url: URL.createObjectURL(file)
+  });
+  input.value = '';
+}
+
+function clearProfileImage() {
+  setProfileImageState(null);
+}
+
+// ================== MESSAGING SYSTEM ==================
+function loadMessages() {
+  // Load all messages where owner is receiver
+  db.ref('messages').orderByChild('receiverId').equalTo(currentUser.uid)
+    .on('value', snapshot => {
+      messages = [];
+      let unreadCount = 0;
+      
+      snapshot.forEach(child => {
+        const message = child.val();
+        message.id = child.key;
+        messages.push(message);
+        
+        if (!message.read) {
+          unreadCount++;
+        }
+      });
+      
+      // Also load messages where owner is sender
+      db.ref('messages').orderByChild('senderId').equalTo(currentUser.uid)
+        .once('value', snapshot2 => {
+          snapshot2.forEach(child => {
+            const message = child.val();
+            message.id = child.key;
+            if (!messages.some(m => m.id === message.id)) {
+              messages.push(message);
+            }
+          });
+          
+          // Group messages into conversations
+          groupMessagesIntoConversations();
+          
+          // Update UI
+          document.getElementById('unreadMessages').textContent = unreadCount;
+          document.getElementById('sidebarMessageCount').textContent = unreadCount;
+          
+          // If messages section is active, update conversations
+          if (document.getElementById('messagesSection').classList.contains('active')) {
+            renderConversations();
+          }
+        });
+    });
+}
+
+function groupMessagesIntoConversations() {
+  conversations = [];
+  const conversationMap = {};
+  
+  messages.forEach(message => {
+    const otherUserId = message.senderId === currentUser.uid ? message.receiverId : message.senderId;
+    const otherUserName = message.senderId === currentUser.uid ? message.receiverName : message.senderName;
+    const propertyId = message.propertyId;
+    const propertyTitle = message.propertyTitle;
+    
+    const key = `${otherUserId}_${propertyId}`;
+    
+    if (!conversationMap[key]) {
+      conversationMap[key] = {
+        id: key,
+        otherUserId: otherUserId,
+        otherUserName: otherUserName,
+        propertyId: propertyId,
+        propertyTitle: propertyTitle,
+        messages: [],
+        lastMessageTime: 0,
+        unreadCount: 0
+      };
+    }
+    
+    conversationMap[key].messages.push(message);
+    conversationMap[key].lastMessageTime = Math.max(conversationMap[key].lastMessageTime, message.timestamp);
+    
+    if (!message.read && message.receiverId === currentUser.uid) {
+      conversationMap[key].unreadCount++;
+    }
+  });
+  
+  // Convert map to array and sort by last message time
+  conversations = Object.values(conversationMap);
+  conversations.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+}
+
+function renderConversations() {
+  const sidebar = document.getElementById('conversationsSidebar');
+  
+  if (conversations.length === 0) {
+    sidebar.innerHTML = `
+      <div class="empty-state" style="padding: 40px 20px;">
+        <i class="fas fa-comments"></i>
+        <h3>No Conversations</h3>
+        <p>You don't have any messages yet.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  sidebar.innerHTML = conversations.map(conv => `
+    <div class="conversation-item ${conv.id === currentConversationId ? 'active' : ''} ${conv.unreadCount > 0 ? 'unread' : ''}" 
+         onclick="selectConversation('${conv.id}')">
+      <div class="conversation-header">
+        <div class="conversation-user">${conv.otherUserName}</div>
+        <div class="conversation-time">${formatTime(conv.lastMessageTime)}</div>
+      </div>
+      <div class="conversation-preview">
+        <strong>${conv.propertyTitle}:</strong> ${conv.messages[conv.messages.length - 1]?.message?.substring(0, 50) || ''}...
+      </div>
+      ${conv.unreadCount > 0 ? `<span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem; position: absolute; top: 15px; right: 15px;">${conv.unreadCount}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function selectConversation(conversationId) {
+  currentConversationId = conversationId;
+  const conversation = conversations.find(c => c.id === conversationId);
+  
+  if (!conversation) return;
+  
+  // Mark all messages as read
+  conversation.messages.forEach(message => {
+    if (!message.read && message.receiverId === currentUser.uid) {
+      db.ref('messages/' + message.id + '/read').set(true);
+    }
+  });
+  
+  // Render messages
+  renderChatMessages(conversation);
+  
+  // Show chat input
+  document.getElementById('chatInput').style.display = 'flex';
+  
+  // Update active conversation in sidebar
+  renderConversations();
+}
+
+function renderChatMessages(conversation) {
+  const chatMessages = document.getElementById('chatMessages');
+  
+  // Sort messages by timestamp
+  conversation.messages.sort((a, b) => a.timestamp - b.timestamp);
+  
+  chatMessages.innerHTML = conversation.messages.map(message => `
+    <div class="message ${message.senderId === currentUser.uid ? 'sent' : 'received'}">
+      <div class="message-content">${message.message}</div>
+      <div class="message-time">${formatTime(message.timestamp)}</div>
+    </div>
+  `).join('');
+  
+  // Scroll to bottom
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const message = input.value.trim();
+  
+  if (!message || !currentConversationId) return;
+  
+  const conversation = conversations.find(c => c.id === currentConversationId);
+  if (!conversation) return;
+  
+  const messageId = db.ref('messages').push().key;
+  const messageData = {
+    id: messageId,
+    senderId: currentUser.uid,
+    senderName: ownerData.fullName || 'Property Owner',
+    receiverId: conversation.otherUserId,
+    receiverName: conversation.otherUserName,
+    propertyId: conversation.propertyId,
+    propertyTitle: conversation.propertyTitle,
+    message: message,
+    timestamp: Date.now(),
+    read: false
+  };
+  
+  db.ref('messages/' + messageId).set(messageData)
+    .then(() => {
+      input.value = '';
+      
+      // Add message to local array
+      messages.push(messageData);
+      groupMessagesIntoConversations();
+      renderChatMessages(conversation);
+      renderConversations();
+      
+      // Create notification for receiver
+      createNotification(
+        conversation.otherUserId,
+        'New Message',
+        `${ownerData.fullName} sent you a message about ${conversation.propertyTitle}`,
+        'message'
+      );
+    })
+    .catch(error => {
+      console.error('Error sending message:', error);
+      showAlert('Error', 'Failed to send message. Please try again.', 'danger');
+    });
+}
+
+function viewListingMessages(listingId) {
+  switchContent('messages');
+  
+  // Find conversation for this listing
+  const conversation = conversations.find(c => c.propertyId === listingId);
+  if (conversation) {
+    selectConversation(conversation.id);
+  }
+}
+
+function refreshMessages() {
+  loadMessages();
+  showAlert('Success', 'Messages refreshed successfully', 'success');
+}
+
+// ================== TOUR MANAGEMENT ==================
+function loadTours() {
+  // Load tour requests for owner's properties
+  db.ref('tourRequests').orderByChild('ownerId').equalTo(currentUser.uid)
+    .on('value', snapshot => {
+      tours = [];
+      let pendingCount = 0;
+      
+      snapshot.forEach(child => {
+        const tour = child.val();
+        tour.id = child.key;
+        tours.push(tour);
+        
+        if (tour.status === 'pending') {
+          pendingCount++;
+        }
+      });
+      
+      // Update UI
+      document.getElementById('pendingTours').textContent = pendingCount;
+      document.getElementById('sidebarTourCount').textContent = pendingCount;
+      
+      // If tours section is active, update display
+      if (document.getElementById('toursSection').classList.contains('active')) {
+        renderTours();
+      }
+    });
+}
+
+function renderTours() {
+  const container = document.getElementById('tourRequests');
+  
+  if (tours.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-calendar-alt"></i>
+        <h3>No Tour Requests</h3>
+        <p>You don't have any tour requests yet.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Filter tours
+  const filteredTours = currentTourFilter === 'all' 
+    ? tours 
+    : tours.filter(t => t.status === currentTourFilter);
+  
+  if (filteredTours.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-filter"></i>
+        <h3>No ${currentTourFilter} tours</h3>
+        <p>You don't have any ${currentTourFilter} tour requests.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Sort by date (newest first)
+  filteredTours.sort((a, b) => b.requestedAt - a.requestedAt);
+  
+  container.innerHTML = filteredTours.map(tour => `
+    <div class="tour-request-card">
+      <div class="tour-header">
+        <div class="tour-property">${tour.propertyTitle}</div>
+        <div class="tour-status status-${tour.status}">${tour.status}</div>
+      </div>
+      
+      <div class="tour-details">
+        <p><strong>From:</strong> ${tour.studentName}</p>
+        <p><strong>Requested Date:</strong> ${tour.requestedDate} at ${tour.requestedTime}</p>
+        <p><strong>Message:</strong> ${tour.message || 'No additional message'}</p>
+      </div>
+      
+      <div class="tour-meta">
+        <div class="tour-meta-item">
+          <i class="fas fa-phone"></i>
+          ${tour.studentPhone || 'No phone'}
+        </div>
+        <div class="tour-meta-item">
+          <i class="fas fa-envelope"></i>
+          ${tour.studentEmail}
         </div>
       </div>
       
-      <!-- Right Panel - Form -->
-      <div class="login-form">
-        <div class="form-header">
-          <h2>Login to Your Account</h2>
-          <p>Enter your credentials to access the owner dashboard</p>
-        </div>
-        
-        <form id="loginForm">
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="email" class="form-input" placeholder="owner@example.com" required>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Password</label>
-            <div class="password-wrapper">
-              <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-              <button type="button" class="toggle-password" id="togglePassword">
-                <i class="far fa-eye"></i>
-              </button>
-            </div>
-          </div>
-          
-          <div class="form-options">
-            <div class="remember-me">
-              <input type="checkbox" id="rememberMe">
-              <label for="rememberMe">Remember me</label>
-            </div>
-            <a href="#" class="forgot-password" id="forgotPassword">Forgot Password?</a>
-          </div>
-          
-          <div class="form-buttons">
-            <button type="submit" class="btn btn-primary" id="loginBtn">
-              <i class="fas fa-sign-in-alt"></i> Login to Dashboard
-            </button>
-          </div>
-        </form>
-        
-        <div class="divider">OR</div>
-        
-        <button class="btn google-btn" id="googleLogin">
-          <i class="fab fa-google"></i> Continue with Google
+      <div class="tour-actions">
+        ${tour.status === 'pending' ? `
+          <button class="action-btn primary" onclick="updateTourStatus('${tour.id}', 'approved')">
+            <i class="fas fa-check"></i>
+            Approve
+          </button>
+          <button class="action-btn danger" onclick="updateTourStatus('${tour.id}', 'rejected')">
+            <i class="fas fa-times"></i>
+            Reject
+          </button>
+        ` : ''}
+        <button class="action-btn secondary" onclick="viewTourDetails('${tour.id}')">
+          <i class="fas fa-eye"></i>
+          Details
         </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTours(status) {
+  currentTourFilter = status;
+  renderTours();
+}
+
+function updateTourStatus(tourId, status) {
+  db.ref('tourRequests/' + tourId + '/status').set(status)
+    .then(() => {
+      const tour = tours.find(t => t.id === tourId);
+      if (tour) {
+        // Create notification for student
+        createNotification(
+          tour.studentId,
+          'Tour Request ' + (status === 'approved' ? 'Approved' : 'Rejected'),
+          `Your tour request for ${tour.propertyTitle} has been ${status}`,
+          status === 'approved' ? 'success' : 'rejection'
+        );
         
-        <div class="signup-link">
-          Don't have an account? <a href="owner-signup.html">Sign up here</a>
+        showAlert('Success', `Tour request ${status} successfully`, 'success');
+      }
+    })
+    .catch(error => {
+      console.error('Error updating tour status:', error);
+      showAlert('Error', 'Failed to update tour status', 'danger');
+    });
+}
+
+function viewTourDetails(tourId) {
+  const tour = tours.find(t => t.id === tourId);
+  if (!tour) return;
+  
+  const content = document.getElementById('tourDetailsContent');
+  content.innerHTML = `
+    <h3 style="margin-bottom: 20px;">Tour Request Details</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Property</div>
+        <div style="font-weight: 600;">${tour.propertyTitle}</div>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Student</div>
+        <div style="font-weight: 600;">${tour.studentName}</div>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Status</div>
+        <div style="font-weight: 600; color: ${tour.status === 'approved' ? 'var(--success)' : tour.status === 'rejected' ? 'var(--danger)' : 'var(--warning)'}">
+          ${tour.status}
+        </div>
+      </div>
+      
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Requested</div>
+        <div style="font-weight: 600;">${new Date(tour.requestedAt).toLocaleDateString()}</div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 25px;">
+      <h4 style="margin-bottom: 10px; color: var(--dark);">Tour Schedule</h4>
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-calendar" style="color: var(--primary);"></i>
+            <span>Date: ${tour.requestedDate}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-clock" style="color: var(--primary);"></i>
+            <span>Time: ${tour.requestedTime}</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+    
+    <div style="margin-bottom: 25px;">
+      <h4 style="margin-bottom: 10px; color: var(--dark);">Student Information</h4>
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm);">
+        <div style="display: grid; gap: 10px;">
+          <div>
+            <div style="font-size: 0.9rem; color: var(--gray);">Name</div>
+            <div style="font-weight: 500;">${tour.studentName}</div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; color: var(--gray);">Email</div>
+            <div style="font-weight: 500;">${tour.studentEmail}</div>
+          </div>
+          ${tour.studentPhone ? `
+            <div>
+              <div style="font-size: 0.9rem; color: var(--gray);">Phone</div>
+              <div style="font-weight: 500;">${tour.studentPhone}</div>
+            </div>
+          ` : ''}
+          ${tour.studentUniversity ? `
+            <div>
+              <div style="font-size: 0.9rem; color: var(--gray);">University</div>
+              <div style="font-weight: 500;">${tour.studentUniversity}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 25px;">
+      <h4 style="margin-bottom: 10px; color: var(--dark);">Additional Message</h4>
+      <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-sm); min-height: 80px;">
+        ${tour.message || 'No additional message provided.'}
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 30px;">
+      <button class="action-btn secondary" style="flex: 1;" onclick="closeModal('tourDetailsModal')">
+        Close
+      </button>
+      ${tour.status === 'pending' ? `
+        <button class="action-btn primary" style="flex: 1;" onclick="updateTourStatus('${tour.id}', 'approved'); closeModal('tourDetailsModal')">
+          Approve Tour
+        </button>
+      ` : tour.status === 'approved' ? `
+        <button class="action-btn primary" style="flex: 1;" onclick="messageStudent('${tour.studentId}', '${tour.propertyTitle}')">
+          <i class="fas fa-envelope"></i>
+          Message Student
+        </button>
+      ` : ''}
+    </div>
+  `;
+  
+  openModal('tourDetailsModal');
+}
 
-  <!-- Profile Completion Modal -->
-  <div class="modal" id="profileModal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeModal">&times;</span>
-      <div class="modal-header">
-        <h3>Complete Your Profile</h3>
-        <p>Please provide additional details to complete your owner account</p>
+function messageStudent(studentId, propertyTitle) {
+  // Find conversation with this student
+  const conversation = conversations.find(c => c.otherUserId === studentId);
+  
+  if (conversation) {
+    switchContent('messages');
+    selectConversation(conversation.id);
+  } else {
+    showAlert('Info', `No existing conversation with this student. They'll need to message you first about ${propertyTitle}.`, 'info');
+  }
+  
+  closeModal('tourDetailsModal');
+}
+
+// ================== ANALYTICS ==================
+function loadAnalytics() {
+  // Calculate analytics
+  const totalViews = listings.reduce((sum, listing) => sum + (listing.views || 0), 0);
+  const totalInquiries = messages.filter(m => m.receiverId === currentUser.uid).length;
+  const inquiryRate = totalViews > 0 ? Math.round((totalInquiries / totalViews) * 100) : 0;
+  const approvedListings = listings.filter(l => l.status === 'approved').length;
+  const occupancyRate = approvedListings > 0 ? Math.round((approvedListings / listings.length) * 100) : 0;
+  
+  // Calculate average response time
+  const ownerMessages = messages.filter(m => m.senderId === currentUser.uid);
+  let totalResponseTime = 0;
+  let responseCount = 0;
+  
+  ownerMessages.forEach(message => {
+    const studentMessages = messages.filter(m => 
+      m.senderId !== currentUser.uid && 
+      m.receiverId === currentUser.uid &&
+      m.timestamp < message.timestamp
+    );
+    
+    if (studentMessages.length > 0) {
+      const lastStudentMessage = studentMessages.sort((a, b) => b.timestamp - a.timestamp)[0];
+      const responseTime = message.timestamp - lastStudentMessage.timestamp;
+      totalResponseTime += responseTime;
+      responseCount++;
+    }
+  });
+  
+  const averageResponseTime = responseCount > 0 ? Math.round(totalResponseTime / responseCount / 3600000) : 0;
+  
+  // Update UI
+  document.getElementById('totalViews').textContent = formatNumber(totalViews);
+  document.getElementById('inquiryRate').textContent = inquiryRate + '%';
+  document.getElementById('responseTime').textContent = averageResponseTime + 'h';
+  document.getElementById('occupancyRate').textContent = occupancyRate + '%';
+  
+  // Create performance chart
+  createPerformanceChart();
+}
+
+function createPerformanceChart() {
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  
+  // Destroy existing chart
+  if (performanceChart) {
+    performanceChart.destroy();
+  }
+  
+  // Sample data (replace with real data)
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const views = [65, 59, 80, 81, 56, 55];
+  const inquiries = [28, 48, 40, 19, 86, 27];
+  const approvals = [2, 1, 3, 2, 4, 3];
+  
+  performanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Views',
+          data: views,
+          borderColor: 'rgb(99, 102, 241)',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Inquiries',
+          data: inquiries,
+          borderColor: 'rgb(139, 92, 246)',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Approvals',
+          data: approvals,
+          borderColor: 'rgb(16, 185, 129)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// ================== NOTIFICATIONS ==================
+function loadNotifications() {
+  db.ref('notifications').orderByChild('receiverId').equalTo(currentUser.uid)
+    .on('value', snapshot => {
+      notifications = [];
+      let unreadCount = 0;
+      
+      snapshot.forEach(child => {
+        const notification = child.val();
+        notification.id = child.key;
+        notifications.push(notification);
+        
+        if (!notification.read) {
+          unreadCount++;
+        }
+      });
+      
+      // Sort by timestamp (newest first)
+      notifications.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Update UI
+      document.getElementById('notificationBadge').textContent = unreadCount;
+    });
+}
+
+function showNotificationsModal() {
+  const content = document.getElementById('notificationContent');
+  
+  if (notifications.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state" style="padding: 40px 20px;">
+        <i class="far fa-bell"></i>
+        <h3>No Notifications</h3>
+        <p>You don't have any notifications yet.</p>
+      </div>
+    `;
+  } else {
+    content.innerHTML = notifications.map(notification => `
+      <div class="notification-item ${notification.read ? '' : 'unread'}" onclick="markNotificationAsRead('${notification.id}')">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px;">
+          <h4 style="margin: 0; color: var(--dark);">${notification.title}</h4>
+          <span style="font-size: 0.8rem; color: var(--gray);">${formatTime(notification.timestamp)}</span>
+        </div>
+        <p style="margin: 0; color: var(--gray); line-height: 1.5;">${notification.message}</p>
+      </div>
+    `).join('');
+  }
+  
+  openModal('notificationModal');
+}
+
+function markNotificationAsRead(notificationId) {
+  db.ref('notifications/' + notificationId + '/read').set(true);
+}
+
+function createNotification(receiverId, title, message, type) {
+  const notificationId = db.ref('notifications').push().key;
+  const notificationData = {
+    id: notificationId,
+    receiverId: receiverId,
+    title: title,
+    message: message,
+    type: type,
+    read: false,
+    timestamp: Date.now()
+  };
+  
+  db.ref('notifications/' + notificationId).set(notificationData);
+}
+
+// ================== UTILITY FUNCTIONS ==================
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  
+  const now = Date.now();
+  const diff = now - timestamp;
+  
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
+function handleSearch() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const dropdown = document.getElementById('suggestionsDropdown');
+  
+  if (query.length < 2) {
+    dropdown.style.display = 'none';
+    return;
+  }
+  
+  const suggestions = [];
+  
+  // Add listing suggestions
+  listings.forEach(listing => {
+    if (listing.title?.toLowerCase().includes(query) || 
+        listing.location?.toLowerCase().includes(query)) {
+      suggestions.push({
+        type: 'listing',
+        icon: 'fas fa-home',
+        title: listing.title,
+        subtitle: `Listing in ${listing.location}`,
+        action: () => {
+          document.getElementById('searchInput').value = listing.title;
+          dropdown.style.display = 'none';
+          switchContent('listings');
+        }
+      });
+    }
+  });
+  
+  // Render suggestions
+  if (suggestions.length > 0) {
+    dropdown.innerHTML = suggestions.map(suggestion => `
+      <div class="suggestion-item" onclick="${suggestion.action.name}()">
+        <i class="${suggestion.icon}"></i>
+        <div class="suggestion-info">
+          <h4>${suggestion.title}</h4>
+          <p>${suggestion.subtitle}</p>
+        </div>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  } else {
+    dropdown.style.display = 'none';
+  }
+}
+
+function showAlert(title, message, type = 'info') {
+  const alert = document.createElement('div');
+  alert.style.cssText = `
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : type === 'warning' ? 'var(--warning)' : 'var(--info)'};
+    padding: 15px 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-dark);
+    z-index: 10000;
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 4.7s;
+  `;
+  
+  alert.innerHTML = `
+    <div style="display: flex; align-items: start; gap: 15px;">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}" 
+         style="color: ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : type === 'warning' ? 'var(--warning)' : 'var(--info)'}; font-size: 1.2rem; margin-top: 2px;"></i>
+      <div style="flex: 1;">
+        <h4 style="margin: 0 0 5px 0; color: var(--dark);">${title}</h4>
+        <p style="margin: 0; color: var(--gray); font-size: 0.9rem;">${message}</p>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()" 
+              style="background: none; border: none; color: var(--gray); cursor: pointer; font-size: 1rem;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(alert);
+  
+  // Remove after 5 seconds
+  setTimeout(() => {
+    if (alert.parentElement) {
+      alert.remove();
+    }
+  }, 5000);
+}
+
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+  document.body.style.overflow = 'auto';
+}
+
+function switchContent(contentId) {
+  // Close sidebar
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+  
+  // Update content sections
+  document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+  document.getElementById(contentId + 'Section').classList.add('active');
+  
+  // Update bottom nav
+  document.querySelectorAll('.nav-item-bottom').forEach(item => item.classList.remove('active'));
+  const navItems = document.querySelectorAll('.nav-item-bottom');
+  switch(contentId) {
+    case 'dashboard': navItems[0].classList.add('active'); break;
+    case 'listings': navItems[1].classList.add('active'); break;
+    case 'messages': navItems[2].classList.add('active'); break;
+    case 'tours': navItems[3].classList.add('active'); break;
+  }
+  
+  // Update sidebar nav
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+    if (item.textContent.includes(contentId.charAt(0).toUpperCase() + contentId.slice(1))) {
+      item.classList.add('active');
+    }
+  });
+  
+  // Load specific content
+  switch(contentId) {
+    case 'analytics':
+      loadAnalytics();
+      break;
+    case 'messages':
+      renderConversations();
+      break;
+    case 'tours':
+      renderTours();
+      break;
+  }
+}
+
+function refreshDashboard() {
+  loadListings();
+  loadMessages();
+  loadTours();
+  loadNotifications();
+  showAlert('Success', 'Dashboard refreshed successfully', 'success');
+}
+
+function showSettings() {
+  const content = document.getElementById('settingsContent');
+  
+  content.innerHTML = `
+    <div style="display: grid; gap: 20px;">
+      <h3 style="color: var(--dark); margin-bottom: 10px;">Account Settings</h3>
+
+      <div class="form-group">
+        <label class="form-label">Profile Picture</label>
+        <div class="upload-panel">
+          <div class="avatar-upload-row">
+            <div class="avatar-preview" id="settingsProfilePreview"></div>
+            <div style="flex: 1; min-width: 220px;">
+              <label class="upload-dropzone" for="ownerProfileImage">
+                <i class="fas fa-user-circle"></i>
+                <span>Choose profile picture</span>
+              </label>
+              <input type="file" class="upload-input" id="ownerProfileImage" accept="image/*" onchange="handleProfileImageSelection(this)">
+              <p class="upload-help">Upload a clear profile image so students can recognize you more easily.</p>
+              <button type="button" class="action-btn secondary" onclick="clearProfileImage()" style="margin-top: 12px; max-width: 180px;">
+                <i class="fas fa-trash-alt"></i>
+                Remove Photo
+              </button>
+            </div>
+          </div>
+          <div class="upload-progress" id="profileUploadProgress" style="margin-top: 16px;">
+            <div class="upload-progress-head">
+              <span id="profileUploadLabel">Preparing upload...</span>
+              <span id="profileUploadPercent">0%</span>
+            </div>
+            <div class="upload-progress-track">
+              <div class="upload-progress-fill" id="profileUploadFill"></div>
+            </div>
+            <div class="upload-progress-note" id="profileUploadNote">Your profile image upload status will appear here.</div>
+          </div>
+        </div>
       </div>
       
       <div class="form-group">
         <label class="form-label">Full Name</label>
-        <input type="text" id="fullName" class="form-input" placeholder="Enter your full name" required>
+        <input type="text" class="form-input" id="ownerName" value="${ownerData.fullName || ''}" placeholder="Enter your name">
       </div>
       
       <div class="form-group">
         <label class="form-label">Phone Number</label>
-        <div class="phone-input">
-          <span class="phone-prefix">+234</span>
-          <input type="tel" id="phone" class="form-input" placeholder="801 234 5678" required pattern="[0-9]{10}">
-        </div>
+        <input type="tel" class="form-input" id="ownerPhone" value="${ownerData.phone || ''}" placeholder="Enter your phone number">
       </div>
       
       <div class="form-group">
-        <label class="form-label">State</label>
-        <div class="form-select-wrapper">
-          <select id="state" class="form-select" required>
-            <option value="" disabled selected>Select your state</option>
-            <!-- Nigerian states will be populated by JavaScript -->
-          </select>
-        </div>
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="ownerLocation" value="${ownerData.location || ''}" placeholder="Enter your location">
       </div>
       
       <div class="form-group">
-        <label class="form-label">Location / Area</label>
-        <input type="text" id="location" class="form-input" placeholder="e.g., Ikeja, Lagos Island" required>
+        <label class="form-label">Notification Preferences</label>
+        <div style="display: grid; gap: 10px; margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="notifyMessages" ${ownerData.notifications?.messages !== false ? 'checked' : ''}>
+            <span>New messages</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="notifyTours" ${ownerData.notifications?.tours !== false ? 'checked' : ''}>
+            <span>Tour requests</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="notifyApprovals" ${ownerData.notifications?.approvals !== false ? 'checked' : ''}>
+            <span>Listing approvals</span>
+          </label>
+        </div>
       </div>
       
-      <button class="btn btn-primary" id="completeProfileBtn">
-        <i class="fas fa-check-circle"></i> Complete Profile
+      <button class="submit-btn" id="saveSettingsBtn" onclick="saveSettings()">
+        <i class="fas fa-save"></i>
+        Save Settings
       </button>
     </div>
-  </div>
+  `;
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  setProfileImageState(ownerData.profileImageUrl ? { kind: 'existing', url: ownerData.profileImageUrl } : null);
+  resetUploadProgress('profile');
+  
+  openModal('settingsModal');
+}
 
-  <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBWOFJN21yu4u4miNU3e64CvQkNCGZX_qU",
-      authDomain: "unistay-5e6b4.firebaseapp.com",
-      databaseURL: "https://unistay-5e6b4-default-rtdb.firebaseio.com",
-      projectId: "unistay-5e6b4",
-      storageBucket: "unistay-5e6b4.appspot.com",
-      messagingSenderId: "551189171944",
-      appId: "1:551189171944:web:81f5f686f7d31a0a3a035d"
+async function saveSettings() {
+  const saveBtn = document.getElementById('saveSettingsBtn');
+  const originalBtnHtml = saveBtn.innerHTML;
+
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    let profileImageUrl = ownerData.profileImageUrl || '';
+
+    if (profileImageState?.kind === 'file') {
+      setUploadProgress('profile', 0, 'Uploading profile photo', `Uploading ${profileImageState.file.name}`);
+      profileImageUrl = await uploadImageFile(
+        profileImageState.file,
+        `propertyOwners/${currentUser.uid}/profile/${Date.now()}-${makeStorageSafeName(profileImageState.file.name)}`,
+        percent => setUploadProgress('profile', percent, 'Uploading profile photo', `Uploading ${profileImageState.file.name}`)
+      );
+    } else if (!profileImageState) {
+      profileImageUrl = '';
+    }
+
+    const updates = {
+      fullName: document.getElementById('ownerName').value.trim(),
+      phone: document.getElementById('ownerPhone').value.trim(),
+      location: document.getElementById('ownerLocation').value.trim(),
+      profileImageUrl,
+      notifications: {
+        messages: document.getElementById('notifyMessages').checked,
+        tours: document.getElementById('notifyTours').checked,
+        approvals: document.getElementById('notifyApprovals').checked
+      },
+      updatedAt: Date.now()
+    };
+
+    await db.ref('propertyOwners/' + currentUser.uid).update(updates);
+    setUploadProgress('profile', 100, 'Profile saved', 'Your profile picture has been updated.');
+    closeModal('settingsModal');
+    showAlert('Success', 'Settings saved successfully', 'success');
+    loadOwnerData();
+  } catch (error) {
+    showAlert('Error', 'Failed to save settings: ' + error.message, 'danger');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = originalBtnHtml;
+  }
+}
+
+function initEventListeners() {
+  // Close suggestions on click outside
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('suggestionsDropdown');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+      dropdown.style.display = 'none';
+    }
+  });
+  
+  // Escape key to close modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal.show').forEach(modal => {
+        closeModal(modal.id);
+      });
+      
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    }
+
+    if (document.getElementById('galleryLightboxModal')?.classList.contains('show')) {
+      if (e.key === 'ArrowLeft') {
+        stepGalleryLightbox(-1);
+      } else if (e.key === 'ArrowRight') {
+        stepGalleryLightbox(1);
+      }
+    }
+  });
+  
+  // Listing form submission
+  document.getElementById('listingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target;
+    const isEdit = form.dataset.mode === 'edit';
+    const listingId = isEdit ? form.dataset.editId : db.ref('properties').push().key;
+    const existingListing = listings.find(l => l.id === listingId) || {};
+    const submitBtn = form.querySelector('.submit-btn');
+    const originalSubmitHtml = submitBtn.innerHTML;
+
+    const listingData = {
+      id: listingId,
+      title: document.getElementById('propertyTitle').value.trim(),
+      description: document.getElementById('propertyDescription').value.trim(),
+      location: document.getElementById('propertyLocation').value.trim(),
+      price: parseInt(document.getElementById('propertyPrice').value) || 0,
+      distance: parseFloat(document.getElementById('propertyDistance').value) || 0,
+      bedrooms: document.getElementById('propertyBedrooms').value,
+      bathrooms: document.getElementById('propertyBathrooms').value,
+      furnishing: document.getElementById('propertyFurnishing').value,
+      status: isEdit ? 'pending' : 'pending', // Reset to pending when edited
+      ownerId: currentUser.uid,
+      ownerName: ownerData.fullName || '',
+      ownerEmail: ownerData.email || '',
+      ownerPhone: ownerData.phone || '',
+      createdAt: isEdit ? existingListing.createdAt || Date.now() : Date.now(),
+      updatedAt: Date.now(),
+      views: isEdit ? existingListing.views || 0 : 0,
+      visibleToStudents: false
     };
     
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-    
-    // Nigerian States Data
-    const nigerianStates = [
-      "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", 
-      "Benue", "Borno", "Cross River", "Delta", "Ebonyi", "Edo", 
-      "Ekiti", "Enugu", "Federal Capital Territory", "Gombe", "Imo", 
-      "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", 
-      "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", 
-      "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
-    ];
-    
-    // DOM Elements
-    const loginForm = document.getElementById('loginForm');
-    const loginBtn = document.getElementById('loginBtn');
-    const googleBtn = document.getElementById('googleLogin');
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const forgotPasswordLink = document.getElementById('forgotPassword');
-    const stateSelect = document.getElementById('state');
-    const modal = document.getElementById('profileModal');
-    const closeModal = document.getElementById('closeModal');
-    const completeProfileBtn = document.getElementById('completeProfileBtn');
-    
-    // Populate Nigerian States in Modal Select
-    function populateStates(selectElement) {
-      // Clear existing options except the first one
-      while (selectElement.options.length > 1) {
-        selectElement.remove(1);
-      }
-      
-      // Add Nigerian states as options
-      nigerianStates.forEach(state => {
-        const option = document.createElement('option');
-        option.value = state;
-        option.textContent = state;
-        selectElement.appendChild(option);
-      });
+    // Validate required fields
+    if (!listingData.title || !listingData.description || !listingData.location || 
+        !listingData.bedrooms || !listingData.bathrooms || !listingData.furnishing) {
+      showAlert('Error', 'Please fill in all required fields', 'danger');
+      return;
     }
     
-    // Initialize states dropdown
-    populateStates(stateSelect);
-    
-    // Toggle Password Visibility
-    togglePassword.addEventListener('click', () => {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      togglePassword.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
-    });
-    
-    // Phone number formatting
-    const phoneInputs = document.querySelectorAll('input[type="tel"]');
-    phoneInputs.forEach(input => {
-      input.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 10) value = value.substring(0, 10);
-        
-        // Format as XXX XXX XXXX
-        if (value.length > 6) {
-          value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
-        } else if (value.length > 3) {
-          value = value.substring(0, 3) + ' ' + value.substring(3);
-        }
-        
-        e.target.value = value;
-      });
-    });
-    
-    // Show Loading State
-    function showLoading(button, text) {
-      const originalText = button.innerHTML;
-      button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
-      button.disabled = true;
-      return originalText;
+    if (listingData.price <= 0) {
+      showAlert('Error', 'Please enter a valid price', 'danger');
+      return;
     }
     
-    // Restore Button State
-    function restoreButton(button, originalText) {
-      button.innerHTML = originalText;
-      button.disabled = false;
+    if (listingData.distance <= 0) {
+      showAlert('Error', 'Please enter a valid distance from campus', 'danger');
+      return;
     }
     
-    // Form Validation
-    function validateOwnerForm(fullName, phone, state, location) {
-      let errors = [];
-      
-      if (!fullName.trim()) errors.push("Full name is required");
-      if (!phone.trim()) errors.push("Phone number is required");
-      if (!state) errors.push("State is required");
-      if (!location.trim()) errors.push("Location/Area is required");
-      
-      // Phone validation
-      const phoneDigits = phone.replace(/\D/g, '');
-      if (phone && phoneDigits.length !== 10) errors.push("Please enter a valid 10-digit Nigerian phone number");
-      
-      return errors;
-    }
-    
-    // Email Login for Property Owners
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const rememberMe = document.getElementById('rememberMe').checked;
-      
-      // Basic validation
-      if (!email || !password) {
-        alert('Please enter both email and password');
-        return;
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      // Show loading state
-      const originalBtnText = showLoading(loginBtn, "Logging in...");
-      
-      try {
-        // Set persistence based on remember me selection
-        const persistence = rememberMe 
-          ? firebase.auth.Auth.Persistence.LOCAL 
-          : firebase.auth.Auth.Persistence.SESSION;
-        
-        await auth.setPersistence(persistence);
-        
-        // Sign in with email and password
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        
-        // Check if user exists in propertyOwners database
-        const snapshot = await db.ref('propertyOwners/' + user.uid).get();
-        const userData = snapshot.val();
-        
-        if (!userData) {
-          // User not found in propertyOwners database
-          alert('Property owner account not found. Please sign up first.');
-          await auth.signOut();
-          restoreButton(loginBtn, originalBtnText);
-          return;
-        }
-        
-        // Check if account is verified
-        if (userData.verified === false) {
-          alert('Your account is pending verification. You will be notified once verified.');
-        }
-        
-        // Success - redirect to dashboard
-        alert(`Welcome back, ${userData.fullName || 'Property Owner'}!`);
-        window.location.href = 'property-owner-dashboard.html';
-        
-      } catch (error) {
-        // Handle errors
-        let errorMessage = "Login failed. Please try again.";
-        
-        switch (error.code) {
-          case 'auth/user-not-found':
-            errorMessage = "No property owner account found with this email. Please sign up first.";
-            break;
-          case 'auth/wrong-password':
-            errorMessage = "Incorrect password. Please try again.";
-            break;
-          case 'auth/invalid-email':
-            errorMessage = "Please enter a valid email address.";
-            break;
-          case 'auth/too-many-requests':
-            errorMessage = "Too many failed login attempts. Please try again later.";
-            break;
-          case 'auth/user-disabled':
-            errorMessage = "This account has been disabled. Please contact support.";
-            break;
-          default:
-            errorMessage = error.message;
-        }
-        
-        alert(errorMessage);
-        restoreButton(loginBtn, originalBtnText);
-      }
-    });
-    
-    // Google Login for Property Owners
-    googleBtn.addEventListener('click', async () => {
-      const originalBtnText = showLoading(googleBtn, "Connecting to Google...");
-      
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-        
-        // Check if owner profile exists in database
-        const snapshot = await db.ref('propertyOwners/' + user.uid).get();
-        const data = snapshot.val();
-        
-        if (!data || !data.fullName || !data.phone || !data.state || !data.location) {
-          // Show modal to complete profile
-          document.getElementById('fullName').value = user.displayName || '';
-          modal.classList.add('show');
-          document.body.style.overflow = 'hidden';
-        } else {
-          // Profile already complete - redirect to dashboard
-          alert(`Welcome back, ${data.fullName}!`);
-          window.location.href = 'property-owner-dashboard.html';
-        }
-        
-      } catch (error) {
-        alert(`Google login failed: ${error.message}`);
-      } finally {
-        restoreButton(googleBtn, originalBtnText);
-      }
-    });
-    
-    // Forgot Password
-    forgotPasswordLink.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      const email = prompt("Please enter your email address to reset your password:");
-      
-      if (!email) {
-        return; // User cancelled
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      try {
-        await auth.sendPasswordResetEmail(email);
-        alert(`Password reset email sent to ${email}. Please check your inbox.`);
-      } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-          alert('No property owner account found with this email. Please sign up first.');
-        } else {
-          alert(`Failed to send reset email: ${error.message}`);
-        }
-      }
-    });
-    
-    // Close Modal
-    closeModal.addEventListener('click', () => {
-      modal.classList.remove('show');
-      document.body.style.overflow = 'auto';
-    });
-    
-    // Complete Profile (for Google login)
-    completeProfileBtn.addEventListener('click', async () => {
-      const fullName = document.getElementById('fullName').value.trim();
-      const phone = document.getElementById('phone').value;
-      const state = document.getElementById('state').value;
-      const location = document.getElementById('location').value.trim();
-      
-      const user = auth.currentUser;
-      if (!user) {
-        alert('No user logged in. Please try again.');
-        return;
-      }
-      
-      // Validate form
-      const errors = validateOwnerForm(fullName, phone, state, location);
-      if (errors.length > 0) {
-        alert(`Please fix the following errors:\n\n• ${errors.join('\n• ')}`);
-        return;
-      }
-      
-      const originalBtnText = showLoading(completeProfileBtn, "Saving Profile...");
-      
-      try {
-        // Clean phone number
-        const cleanPhone = phone.replace(/\D/g, '');
-        const formattedPhone = `+234${cleanPhone}`;
-        
-        // Save owner data to Firebase Database
-        await db.ref('propertyOwners/' + user.uid).set({
-          fullName,
-          email: user.email,
-          phone: formattedPhone,
-          state,
-          location,
-          role: 'propertyOwner',
-          authProvider: 'google',
-          verified: false,
-          accountType: 'basic',
-          maxListings: 3,
-          profileCompleted: true,
-          completedAt: firebase.database.ServerValue.TIMESTAMP,
-          createdAt: firebase.database.ServerValue.TIMESTAMP
-        });
-        
-        // Close modal and redirect
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-        alert('Profile completed! Your account will be verified within 24 hours.');
-        window.location.href = 'property-owner-dashboard.html';
-        
-      } catch (error) {
-        alert(`Failed to save profile: ${error.message}`);
-        restoreButton(completeProfileBtn, originalBtnText);
-      }
-    });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-      }
-    });
-    
-    // Check if user is already logged in
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        // User is signed in, check if they're a property owner
-        db.ref('propertyOwners/' + user.uid).get().then(snapshot => {
-          const data = snapshot.val();
-          if (data && data.fullName && data.phone && data.state && data.location) {
-            // User has complete profile, redirect to dashboard
-            window.location.href = 'property-owner-dashboard.html';
-          }
-        });
-      }
-    });
-    
-    // Auto-focus email field on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('email').focus();
-    });
-  </script>
+    // Save to Firebase
+    try {
+      const totalNewFiles = listingMediaState.property.filter(item => item.kind === 'file').length +
+        listingMediaState.facility.filter(item => item.kind === 'file').length;
 
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading images...';
+      setUploadProgress(
+        'listing',
+        0,
+        totalNewFiles ? `Preparing ${totalNewFiles} upload${totalNewFiles === 1 ? '' : 's'}` : 'Saving listing',
+        totalNewFiles ? 'Starting image upload...' : 'No new images selected, saving listing data only.'
+      );
+
+      const propertyNewCount = listingMediaState.property.filter(item => item.kind === 'file').length;
+      const propertyWeight = totalNewFiles ? propertyNewCount / totalNewFiles : 0;
+
+      const propertyImageUrls = await resolveMediaUrls(
+        listingMediaState.property,
+        `propertyOwners/${currentUser.uid}/properties/${listingId}/property-images`,
+        'listing',
+        'Uploading property images'
+      );
+
+      if (totalNewFiles) {
+        setUploadProgress(
+          'listing',
+          propertyWeight * 100,
+          propertyNewCount ? 'Property images uploaded' : 'Uploading facility images',
+          propertyNewCount ? 'Moving to the next upload group.' : 'Uploading facility images now.'
+        );
+      }
+
+      const facilityImageUrls = await resolveMediaUrls(
+        listingMediaState.facility,
+        `propertyOwners/${currentUser.uid}/properties/${listingId}/facility-images`,
+        'listing',
+        'Uploading facility images'
+      );
+
+      listingData.propertyImages = propertyImageUrls;
+      listingData.facilityImages = facilityImageUrls;
+      listingData.coverImage = propertyImageUrls[0] || facilityImageUrls[0] || '';
+
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving listing...';
+      setUploadProgress('listing', 100, 'Saving listing', 'Writing listing details to your database.');
+      await db.ref('properties/' + listingId).set(listingData);
+      
+      // Create notification
+      createNotification(
+        currentUser.uid,
+        isEdit ? 'Listing Updated' : 'Listing Submitted',
+        `Your listing "${listingData.title}" has been ${isEdit ? 'updated' : 'submitted'} for approval.`,
+        'approval'
+      );
+      
+      closeModal('createListingModal');
+      showAlert(
+        'Success',
+        `Listing ${isEdit ? 'updated' : 'submitted'} successfully! ${isEdit ? 'It will need re-approval.' : 'It is now pending administrator approval.'}`,
+        'success'
+      );
+      
+      // Reset form
+      resetListingForm();
+      
+    } catch (error) {
+      showAlert('Error', 'Failed to save listing: ' + error.message, 'danger');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalSubmitHtml;
+    }
+  });
+  
+  // Message input enter key
+  document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+}
+
+// ================== ANIMATION STYLES ==================
+const animationStyles = document.createElement('style');
+animationStyles.textContent = `
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.stat-card:hover .stat-value {
+  transform: translateY(-2px);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.image-placeholder {
+  animation: pulse 2s infinite;
+}
+
+.action-btn:hover i {
+  transform: translateX(3px);
+}
+
+.leaflet-marker-icon {
+  transition: transform 0.3s ease;
+}
+
+.leaflet-marker-icon:hover {
+  transform: scale(1.2);
+}
+`;
+document.head.appendChild(animationStyles);
+</script>
 </body>
 </html>
